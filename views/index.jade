@@ -6,24 +6,25 @@ block content
 		$(document).ready(function() {
 			var socket = io.connect();
 
+			// Define default settings.
 			var settings = {
-				player_number = -1,
-
-				ball_dimensions: {
-					height: 10,
-					width: 10
-				},
-				paddle_dimensions: {
-					height: 80,
-					width: 10
-				}
+				player_id: -1,
+				player: -1,
+				ball_dimensions: { height: 10, width: 10 },
+				paddle_dimensions: { height: 80, width: 10 }
 			};
 
+			// Reference DOM elements.
+			var $board = $('#board');
 			var $ball = $('#ball');
 			var $paddle1 = $('#paddle1');
 			var $paddle2 = $('#paddle2');
 			var $paddles = $('.paddle');
 
+
+			// ==========================
+			// START
+			// --------------------------
 			// Start after initialized.
 			var afterInit = function() {
 
@@ -37,28 +38,47 @@ block content
 
 				// Send paddle position.
 				$(document).mousemove(function(e) {
-					socket.emit('update', { player: settings.player_number, y: e.pageY });
+					var update = { player: settings.player_number, y: e.pageY };
+					socket.emit('update', update);
+
+					// Move the paddle.
+					$('#paddle'+settings.player).css({
+						top: e.pageY-$board.offset().top
+					});
 				});
 			};
 
+			// Initialize the board.
 			var initBoard = function(settings) {
 				// Ball
+				$ball.removeClass('hidden');
 				$ball.css({
 					height: settings.ball_dimensions.height,
 					width: settings.ball_dimensions.width
 				});
 
 				// Paddles
+				$paddles.removeClass('hidden');
 				$paddles.css({
 					height: settings.paddle_dimensions.height,
 					width: settings.paddle_dimensions.width
 				});
+
+				// Position paddles.
+				$paddle1.css({
+					left: $board.css('padding-left')
+				});
+				$paddle2.css({
+					left: ($board.innerWidth()-$board.css('padding-right').replace('px',''))-$paddle2.width()
+				});
 			}
 
 			// Init the game.
-			socket.on('init', function(settings) {
-				settings.player_number = data.player;
-				settings.ball_dimensions.height = settings.ball_dimensions.width = data.ball_size
+			socket.on('init', function(data) {
+				//console.log('got init data', data);
+				settings.player_id = data.player;
+				settings.player = data.player + 1;
+				settings.ball_dimensions.height = settings.ball_dimensions.width = data.ball_size;
 				settings.paddle_dimensions.height = data.paddle_height;
 				settings.paddle_dimensions.width = data.paddle_width;
 
@@ -74,7 +94,6 @@ block content
 	style(type='text/css')
 
 		#board {
-			//display: hidden;
 			position: relative;
 			background-color: black;
 			padding: 10px;
@@ -97,17 +116,20 @@ block content
 		}
 
 		.paddle {
-			display: none;
 			position: absolute;
 			background-color: white;
 			width: 10px;
 			height: 80px;
 		}
 
+		.hidden {
+			display: none;
+		}
+
 	h1 Pong
 
 	#board
-		#ball
-		#paddle1.paddle
-		#paddle2.paddle
+		#ball.hidden
+		#paddle1.paddle.hidden
+		#paddle2.paddle.hidden
 		#divider
