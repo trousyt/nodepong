@@ -50,7 +50,7 @@ http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-io.on('connection', function(socket) {
+io.sockets.on('connection', function(socket) {
 	if (!socket1){
 		socket1 = socket;	
 	}else if (!socket2){
