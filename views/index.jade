@@ -1,5 +1,113 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  
+	script(type='text/javascript')
+		$(document).ready(function() {
+			var socket = io.connect();
+
+			var settings = {
+				player_number = -1,
+
+				ball_dimensions: {
+					height: 10,
+					width: 10
+				},
+				paddle_dimensions: {
+					height: 80,
+					width: 10
+				}
+			};
+
+			var $ball = $('#ball');
+			var $paddle1 = $('#paddle1');
+			var $paddle2 = $('#paddle2');
+			var $paddles = $('.paddle');
+
+			// Start after initialized.
+			var afterInit = function() {
+
+				// Receive board positions.
+				socket.on('draw', function(pos) {
+					$ball.css({
+						left: pos.x,
+						top: pos.y
+					})
+				});
+
+				// Send paddle position.
+				$(document).mousemove(function(e) {
+					socket.emit('update', { player: settings.player_number, y: e.pageY });
+				});
+			};
+
+			var initBoard = function(settings) {
+				// Ball
+				$ball.css({
+					height: settings.ball_dimensions.height,
+					width: settings.ball_dimensions.width
+				});
+
+				// Paddles
+				$paddles.css({
+					height: settings.paddle_dimensions.height,
+					width: settings.paddle_dimensions.width
+				});
+			}
+
+			// Init the game.
+			socket.on('init', function(settings) {
+				settings.player_number = data.player;
+				settings.ball_dimensions.height = settings.ball_dimensions.width = data.ball_size
+				settings.paddle_dimensions.height = data.paddle_height;
+				settings.paddle_dimensions.width = data.paddle_width;
+
+				// Init the board.
+				initBoard(settings);
+
+				// Invoke after-init code.
+				afterInit();
+			});
+
+		});
+
+	style(type='text/css')
+
+		#board {
+			//display: hidden;
+			position: relative;
+			background-color: black;
+			padding: 10px;
+			width: 640px;
+			height: 480px;
+		}
+
+		#divider {
+			position: absolute;
+			border: 4px dashed white;
+			height: 100%;
+			left: 320px;
+		}
+
+		#ball {
+			position: absolute;
+			background-color: white;
+			width: 20px;
+			height: 20px;
+		}
+
+		.paddle {
+			display: none;
+			position: absolute;
+			background-color: white;
+			width: 10px;
+			height: 80px;
+		}
+
+	h1 Pong
+
+	#board
+		#ball
+		#paddle1.paddle
+		#paddle2.paddle
+		#divider
