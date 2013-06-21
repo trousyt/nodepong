@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -15,6 +14,7 @@ var app = express();
 //var socket1, socket2;
 var sockets = [0, 0];
 var paddles = [0, 0];
+var scores = [0, 0];
 var width = 640, height = 480;
 var ball_speed = 20;
 var ball_angle = 0;
@@ -79,7 +79,26 @@ io.sockets.on('connection', function(socket) {
 	// Game loop.
 	setInterval(function(){
 		ball_pos.x = ball_pos.x + Math.cos(ball_angle) * ball_speed;
-		ball_pos.y = ball_pos.y - Math.sin(ball_angle) * ball_speed;		
+		ball_pos.y = ball_pos.y - Math.sin(ball_angle) * ball_speed;
+		
+		if (ball_pos.x <= 0) {
+			ball_pos.x = 0;
+			ball_angle = Math.PI - ball_angle;
+			scores[1] = scores[1] + 1;
+		}else if (ball_pos.x >= width) {
+			ball_pos = width;
+			ball_angle = Math.PI - ball_angle;
+			scores[0] = scores[0] + 1;
+		}
+
+		if (ball_pos.y <= 0) {
+			ball_pos.y = 0;
+			ball_angle = Math.PI - ball_angle;
+		}else if (ball_pos.y >= height) {
+			ball_pos = height;
+			ball_angle = Math.PI - ball_angle;
+		}
+		
 		socket.emit('draw', ball_pos);
 	}, 100);
 
