@@ -38,12 +38,22 @@ block content
 
 				// Send paddle position.
 				$(document).mousemove(function(e) {
-					var update = { player: settings.player_number, y: e.pageY };
+					// Ignore out-of-bounds positions.
+					var relativeY = e.pageY - $board.offset().top;		// Relative y-pos from the board
+					var topY = relativeY;								// Top y-pos of the paddle
+					if (relativeY < 0) {
+						relativeY = topY = 0;
+					} else if (relativeY > $board.height()) {
+						relativeY = $board.height();
+					}
+
+					var update = { player: settings.player_number, y: relativeY };
 					socket.emit('update', update);
 
 					// Move the paddle.
-					$('#paddle'+settings.player).css({
-						top: e.pageY-$board.offset().top
+					var $currentPaddle = $('#paddle'+settings.player);
+					$currentPaddle.css({
+						top: relativeY
 					});
 				});
 			};

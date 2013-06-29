@@ -81,6 +81,8 @@ io.sockets.on('connection', function(socket) {
 		ball_pos.x = ball_pos.x + Math.cos(ball_angle) * ball_speed;
 		ball_pos.y = ball_pos.y - Math.sin(ball_angle) * ball_speed;
 		
+		console.log(ball_pos.x);
+
 		if (ball_pos.x <= 0) {
 			ball_pos.x = 0;
 			ball_angle = Math.PI - ball_angle;
