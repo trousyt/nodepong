@@ -38,9 +38,10 @@ block content
 
 				// Send paddle position.
 				$(document).mousemove(function(e) {
-					// Ignore out-of-bounds positions.
 					var relativeY = e.pageY - $board.offset().top;		// Relative y-pos from the board
-					var topY = relativeY;								// Top y-pos of the paddle
+					var topY = relativeY;	// Top y-pos of the paddle
+
+					// Fixup the paddle positions.		
 					if (relativeY < 0) {
 						relativeY = topY = 0;
 					} else if (relativeY > $board.height()) {
