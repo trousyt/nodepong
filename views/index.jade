@@ -16,6 +16,7 @@ block content
 
 			// Reference DOM elements.
 			var $board = $('#board');
+			var $alert = $('#alert');
 			var $ball = $('#ball');
 			var $paddle1 = $('#paddle1');
 			var $paddle2 = $('#paddle2');
@@ -28,6 +29,15 @@ block content
 			// Start after initialized.
 			var afterInit = function() {
 
+				// Receive display events.
+				socket.on('alert', function(alert) {
+					
+					$alert.show(1000);
+					$alert.text(alert);
+					//if (!perpetual) $alert.hide(1000 );
+
+				});
+
 				// Receive board positions.
 				socket.on('draw', function(pos) {
 					$ball.css({
@@ -36,25 +46,31 @@ block content
 					})
 				});
 
+				var paddleMaxY = $board.height()
+					- settings.paddle_dimensions.height;
+
+
 				// Send paddle position.
 				$(document).mousemove(function(e) {
-					var relativeY = e.pageY - $board.offset().top;		// Relative y-pos from the board
-					var topY = relativeY;	// Top y-pos of the paddle
+					// Get the relative y-pos to the board.
+					var relativeY = e.pageY-$board.offset().top;
+					
+					// Get the constrained y-pos.
+					var constrY = relativeY < 0 
+						? 0 : relativeY > paddleMaxY 
+							? paddleMaxY : relativeY;
 
-					// Fixup the paddle positions.		
-					if (relativeY < 0) {
-						relativeY = topY = 0;
-					} else if (relativeY > $board.height()) {
-						relativeY = $board.height();
-					}
+					console.log('relative: ' + relativeY);
+					console.log('constrained: ' + constrY);
 
-					var update = { player: settings.player_number, y: relativeY };
+					// Update the server.
+					var update = { player: settings.player_number, y: constrY };
 					socket.emit('update', update);
 
 					// Move the paddle.
 					var $currentPaddle = $('#paddle'+settings.player);
 					$currentPaddle.css({
-						top: relativeY
+						top: constrY
 					});
 				});
 			};
@@ -102,44 +118,12 @@ block content
 
 		});
 
-	style(type='text/css')
-
-		#board {
-			position: relative;
-			background-color: black;
-			padding: 10px;
-			width: 640px;
-			height: 480px;
-		}
-
-		#divider {
-			position: absolute;
-			border: 4px dashed white;
-			height: 100%;
-			left: 320px;
-		}
-
-		#ball {
-			position: absolute;
-			background-color: white;
-			width: 20px;
-			height: 20px;
-		}
-
-		.paddle {
-			position: absolute;
-			background-color: white;
-			width: 10px;
-			height: 80px;
-		}
-
-		.hidden {
-			display: none;
-		}
+	link(type='text/css', rel='stylesheet', href='stylesheets/pong.css')
 
 	h1 Pong
 
 	#board
+		#alert
 		#ball.hidden
 		#paddle1.paddle.hidden
 		#paddle2.paddle.hidden
