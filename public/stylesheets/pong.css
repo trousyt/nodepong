@@ -15,24 +15,28 @@
 
 #ball {
 	position: absolute;
-	background-color: white;
+	background-color: red;
+	border-radius: 10px;
 	width: 20px;
 	height: 20px;
+	z-index: 10;
 }
 
 #alert {
-	position: absolute;
-	width: 300px;
-	height: 200px;
-	top: 600px;
-	background-color: blue;
+	width: 640px;
+	height: 30px;
+	padding: 10px;
+	background-color: black;
+	color: white;
 }
 
 .paddle {
 	position: absolute;
 	background-color: white;
+	border-radius: 5px;
 	width: 10px;
 	height: 80px;
+	text-align: center;
 }
 
 .hidden {
