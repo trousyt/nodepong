@@ -2,129 +2,14 @@ extends layout
 
 block content
   
-	script(type='text/javascript')
-		$(document).ready(function() {
-			var socket = io.connect();
-
-			// Define default settings.
-			var settings = {
-				player_id: -1,
-				player: -1,
-				ball_dimensions: { height: 10, width: 10 },
-				paddle_dimensions: { height: 80, width: 10 }
-			};
-
-			// Reference DOM elements.
-			var $board = $('#board');
-			var $alert = $('#alert');
-			var $ball = $('#ball');
-			var $paddle1 = $('#paddle1');
-			var $paddle2 = $('#paddle2');
-			var $paddles = $('.paddle');
-
-
-			// ==========================
-			// START
-			// --------------------------
-			// Start after initialized.
-			var afterInit = function() {
-
-				// Receive display events.
-				socket.on('alert', function(alert) {
-					
-					$alert.show(1000);
-					$alert.text(alert);
-					//if (!perpetual) $alert.hide(1000 );
-
-				});
-
-				// Receive board positions.
-				socket.on('draw', function(pos) {
-					$ball.css({
-						left: pos.x,
-						top: pos.y
-					})
-				});
-
-				var paddleMaxY = $board.height()
-					- settings.paddle_dimensions.height;
-
-
-				// Send paddle position.
-				$(document).mousemove(function(e) {
-					// Get the relative y-pos to the board.
-					var relativeY = e.pageY-$board.offset().top;
-					
-					// Get the constrained y-pos.
-					var constrY = relativeY < 0 
-						? 0 : relativeY > paddleMaxY 
-							? paddleMaxY : relativeY;
-
-					console.log('relative: ' + relativeY);
-					console.log('constrained: ' + constrY);
-
-					// Update the server.
-					var update = { player: settings.player_number, y: constrY };
-					socket.emit('update', update);
-
-					// Move the paddle.
-					var $currentPaddle = $('#paddle'+settings.player);
-					$currentPaddle.css({
-						top: constrY
-					});
-				});
-			};
-
-			// Initialize the board.
-			var initBoard = function(settings) {
-				// Ball
-				$ball.removeClass('hidden');
-				$ball.css({
-					height: settings.ball_dimensions.height,
-					width: settings.ball_dimensions.width
-				});
-
-				// Paddles
-				$paddles.removeClass('hidden');
-				$paddles.css({
-					height: settings.paddle_dimensions.height,
-					width: settings.paddle_dimensions.width
-				});
-
-				// Position paddles.
-				$paddle1.css({
-					left: $board.css('padding-left')
-				});
-				$paddle2.css({
-					left: ($board.innerWidth()-$board.css('padding-right').replace('px',''))-$paddle2.width()
-				});
-			}
-
-			// Init the game.
-			socket.on('init', function(data) {
-				//console.log('got init data', data);
-				settings.player_id = data.player;
-				settings.player = data.player + 1;
-				settings.ball_dimensions.height = settings.ball_dimensions.width = data.ball_size;
-				settings.paddle_dimensions.height = data.paddle_height;
-				settings.paddle_dimensions.width = data.paddle_width;
-
-				// Init the board.
-				initBoard(settings);
-
-				// Invoke after-init code.
-				afterInit();
-			});
-
-		});
-
-	link(type='text/css', rel='stylesheet', href='stylesheets/pong.css')
+	script(src='/scripts/pong.js')
+	link(type='text/css', rel='stylesheet', href='/stylesheets/pong.css')
 
 	h1 Pong
 
-	#board
-		#alert
+	#alert
+	#board	
 		#ball.hidden
-		#paddle1.paddle.hidden
-		#paddle2.paddle.hidden
+		#paddle1.paddle.hidden= 1
+		#paddle2.paddle.hidden= 2
 		#divider
