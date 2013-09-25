@@ -104,6 +104,7 @@ $(document).ready(function() {
 
 	// Init the game.
 	socket.on('init', function(data) {
+		console.log('received init: player=' + data.player);
 		settings.player_id = data.player;
 		settings.player = data.player + 1;
 		settings.ball.dimensions.height = settings.ball.dimensions.width = data.ball_size;

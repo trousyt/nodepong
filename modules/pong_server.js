@@ -53,17 +53,13 @@ exports.register = function(socketio, callback) {
 				lastMessageSent = msg;
 				socket.emit('alert', msg);;
 			}
-		}
+		};
 
 		// Conditions for the game to start.
 		var canStart = function() {
-			if (!(socket[0] || socket[1])) {
-				//console.log('both players not connected');
-				return false;
-			}
-			console.log('CAN START!');
-			return true;
-		}
+			// Can start if both sockets are connected (truthy).
+			return socket[0] && socket[1];
+		};
 
 		//--------
 		// SETUP
@@ -74,7 +70,7 @@ exports.register = function(socketio, callback) {
 			console.log('assigning socket #' + socketIdx);
 			socket[socketIdx] = socket;
 			return socketIdx;
-		}
+		};
 
 		// Get/set the socket index.
 		var socketIndex = setSocketIndex(socket);
