@@ -1,5 +1,11 @@
 var sass = require('node-sass');
 
+// Screen asset dimensions.
+var width = 640, height = 480;
+var paddle_width = 20;
+var paddle_height = 80;
+var ball_size = 20;
+
 // Server vars.
 var gameLoopInterval = 100;
 var sockets = [0, 0];
@@ -8,12 +14,6 @@ var scores = [0, 0];
 var ball_speed = 20;
 var ball_angle = 0;
 var ball_pos = {x: width/2, y: height/2};
-
-// Screen asset dimensions.
-var width = 640, height = 480;
-var paddle_width = 20;
-var paddle_height = 80;
-var ball_size = 20;
 
 // Text resource strings.
 var res = {
@@ -57,10 +57,11 @@ exports.register = function(socketio, callback) {
 
 		// Conditions for the game to start.
 		var canStart = function() {
-			if (!(socket[0] && socket[1])) {
+			if (!(socket[0] || socket[1])) {
 				//console.log('both players not connected');
 				return false;
 			}
+			console.log('CAN START!');
 			return true;
 		}
 
@@ -110,14 +111,14 @@ exports.register = function(socketio, callback) {
 			ball_pos.x = ball_pos.x + Math.cos(ball_angle) * ball_speed;
 			ball_pos.y = ball_pos.y - Math.sin(ball_angle) * ball_speed;
 			
-			console.log(ball_pos.x);
+			//console.log(ball_pos.x);
 
 			if (ball_pos.x <= 0) {
 				ball_pos.x = 0;
 				ball_angle = Math.PI - ball_angle;
 				scores[1] = scores[1] + 1;
 			}else if (ball_pos.x >= width) {
-				ball_pos = width;
+				ball_pos.x = width;
 				ball_angle = Math.PI - ball_angle;
 				scores[0] = scores[0] + 1;
 			}
@@ -126,7 +127,7 @@ exports.register = function(socketio, callback) {
 				ball_pos.y = 0;
 				ball_angle = Math.PI - ball_angle;
 			}else if (ball_pos.y >= height) {
-				ball_pos = height;
+				ball_pos.y = height;
 				ball_angle = Math.PI - ball_angle;
 			}
 			
