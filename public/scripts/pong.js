@@ -64,7 +64,7 @@ $(document).ready(function() {
 			// console.log('constrained: ' + constrY);
 
 			// Update the server.
-			var update = { player: settings.player_number, y: constrY };
+			var update = { player: settings.player_id, y: constrY };
 			socket.emit('update', update);
 
 			// Move the paddle.
@@ -78,20 +78,19 @@ $(document).ready(function() {
 	// Initialize the board.
 	var initBoard = function(settings) {
 		// Ball
-		$ball.removeClass('hidden');
 		$ball.css({
 			left: settings.ball.location.x,
 			top: settings.ball.location.y,
 			height: settings.ball.dimensions.height,
 			width: settings.ball.dimensions.width
 		});
+		$ball.removeClass('hidden');
 
 		// Paddles
-		$paddles.removeClass('hidden');
 		$paddles.css({
 			height: settings.paddle.dimensions.height,
 			width: settings.paddle.dimensions.width
-		});
+		});		
 
 		// Position paddles.
 		$paddle1.css({
@@ -100,6 +99,7 @@ $(document).ready(function() {
 		$paddle2.css({
 			left: ($board.innerWidth()-parseInt($board.css('padding-right')))-$paddle2.width()
 		});
+		$paddles.removeClass('hidden');
 	}
 
 	// Init the game.
