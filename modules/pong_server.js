@@ -5,6 +5,7 @@ var width = 640, height = 480;
 var paddle_width = 20;
 var paddle_height = 80;
 var ball_size = 10;
+var board_padding = 10;
 
 // Server vars.
 var gameLoopInterval = 50; //75;
@@ -105,7 +106,7 @@ exports.register = function(socketio, callback) {
 			}
 
 			ball_pos.x = ball_pos.x + Math.cos(ball_angle) * ball_speed;
-			ball_pos.y = ball_pos.y - Math.sin(ball_angle) * ball_speed;
+			ball_pos.y = ball_pos.y + Math.sin(ball_angle) * ball_speed;
 			
 			//console.log(ball_pos.x);
 
@@ -139,7 +140,7 @@ exports.register = function(socketio, callback) {
 			var paddle_offset = 10;
 			if (socketIndex === 0) {
 				//console.log('ball-y: ' + ball_pos.y + ', paddle-y: ' + paddles[0])
-				if (ball_pos.x <= (paddle_offset+paddle_width) && 
+				if (ball_pos.x <= (board_padding + paddle_offset + paddle_width) && 
 					ball_pos.x >= paddle_offset &&
 					ball_pos.y >= paddles[0] &&
 					ball_pos.y <= paddles[0] + paddle_height) {
@@ -157,10 +158,12 @@ exports.register = function(socketio, callback) {
 			// The ball hit a top/bottom wall.
 			if (ball_pos.y <= 0) {
 				ball_pos.y = ball_speed;
-				ball_angle = Math.PI - ball_angle;
+				ball_angle = 0 - ball_angle;
+				console.log("hit y<=0");
 			} else if (ball_pos.y >= height) {
 				ball_pos.y = height - ball_speed;
-				ball_angle = Math.PI - ball_angle;
+				ball_angle = 0 - ball_angle;
+				console.log("hit y>= height");
 			}
 			
 			socket.emit('draw', ball_pos);

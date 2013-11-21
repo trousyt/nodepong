@@ -21,7 +21,7 @@ $(document).ready(function() {
 	var $paddle1 = $('#paddle1');
 	var $paddle2 = $('#paddle2');
 	var $paddles = $('.paddle');
-	var board_padding = parseInt($board.css('padding-top'));
+	var board_padding = parseInt($board.css('padding'));
 
 
 	// ==========================
