@@ -59,9 +59,9 @@ exports.register = function(socketio, callback) {
 
 		// Conditions for the game to start.
 		var canStart = function() {
-			return true;
+			// return true;
 			// Can start if both sockets are connected (truthy).
-			return socket[0] && socket[1];
+			return sockets[0] && sockets[1];
 		};
 
 		//--------
@@ -71,7 +71,7 @@ exports.register = function(socketio, callback) {
 		var setSocketIndex = function() {
 			var socketIdx = !sockets[0] ? 0 : !sockets[1] ? 1 : -1;
 			console.log('assigning socket #' + socketIdx);
-			socket[socketIdx] = socket;
+			sockets[socketIdx] = socket;
 			return socketIdx;
 		};
 

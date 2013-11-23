@@ -10,6 +10,8 @@ var express = require('express')
   , socketio = require('socket.io')
   , pongServer = require('./modules/pong_server')
 
+//var socket = [0, 0];
+
 var app = express();
 
 // all environments
