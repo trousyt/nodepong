@@ -40,11 +40,22 @@ $(document).ready(function() {
 		});
 
 		// Receive board positions.
-		socket.on('draw', function(pos) {
+		socket.on('draw', function(pos, paddlePos) {
 			$ball.css({
 				left: pos.x,
 				top: pos.y
-			})
+			}); 
+
+			if (settings.player == 2){
+				$paddle1.css({
+					top: paddlePos[0]
+				});
+			} else if (settings.player == 1){
+				$paddle2.css({
+					top: paddlePos[1]
+				});
+			}	
+			
 		});
 
 		var paddleMaxY = $board.innerHeight() - 
@@ -69,6 +80,7 @@ $(document).ready(function() {
 
 			// Move the paddle.
 			var $currentPaddle = $('#paddle'+settings.player);
+			
 			$currentPaddle.css({
 				top: constrY
 			});

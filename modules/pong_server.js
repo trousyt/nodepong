@@ -166,7 +166,7 @@ exports.register = function(socketio, callback) {
 				console.log("hit y>= height");
 			}
 			
-			socket.emit('draw', ball_pos);
+			socket.emit('draw', ball_pos, paddles);
 		}, loopInterval);
 
 	});
