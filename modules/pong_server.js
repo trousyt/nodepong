@@ -1,3 +1,8 @@
+/*
+ * pong_server.js
+ * Contains the main game loop and socket event handlers/emitters.
+ */
+
 var sass = require('node-sass');
 
 // Screen asset dimensions.
@@ -9,9 +14,9 @@ var board_padding = 10;
 
 // Server vars.
 var gameLoopInterval = 50; //75;
-var sockets = [0, 0];	
-var paddles = [0, 0];	// Paddle y-positions
-var scores = [0, 0];
+var sockets = [];	
+var paddles = [];	// Paddle y-positions
+var scores = [];
 var round = 1;
 var ball_speed = 10;
 var ball_angle = Math.PI-0.2;
@@ -19,6 +24,7 @@ var ball_pos = {x: width/2, y: height/2};
 
 // Text resource strings.
 var res = {
+	CONFIGURATION_ERROR:'A configuration error occurred.',
 	WAITING_FOR_PLAYER: 'Waiting for another player...',
 	WAITING_FOR_TURN: 	'Waiting for turn...'
 };
@@ -78,7 +84,7 @@ exports.register = function(socketio, callback) {
 		// Get/set the socket index.
 		var socketIndex = setSocketIndex(socket);
 		if (socketIndex < 0) {
-			sendMessage(res.WAITING_FOR_TURN);
+			sendMessage(res.CONFIGURATION_ERROR);
 		}
 
 		//--------
