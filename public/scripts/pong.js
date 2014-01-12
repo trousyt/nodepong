@@ -1,26 +1,21 @@
+
 $(document).ready(function() {
 	var socket = io.connect();
+	var gameSettings = {
+		refreshIntervalMs: 100,
+		playerIdx: -1,
+		game: null,
 
-	// Define default settings.
-	var settings = {
-		player_id: -1,
-		player: -1,
-		ball: {
-			location: { x: 30, y: 30 },
-			dimensions: { height: 10, width: 10 }
-		},
-		paddle: {
-			dimensions: { height: 80, width: 10 }
+		playerNumber: function() {
+			return this.playerIdx + 1;
 		}
 	};
 
 	// Reference DOM elements.
 	var $board = $('#board');
 	var $alert = $('#alert');
-	var $ball = $('#ball');
-	var $paddle1 = $('#paddle1');
-	var $paddle2 = $('#paddle2');
-	var $paddles = $('.paddle');
+	var $canvas = $('#game-canvas');
+	var canvas = document.getElementById('game-canvas');
 	var board_padding = parseInt($board.css('padding'));
 
 
@@ -29,6 +24,7 @@ $(document).ready(function() {
 	// --------------------------
 	// Start after initialized.
 	var afterInit = function() {
+		console.log('in afterInit');
 
 		// Receive display events.
 		socket.on('alert', function(alert) {
@@ -39,32 +35,29 @@ $(document).ready(function() {
 
 		});
 
-		// Receive board positions.
-		socket.on('draw', function(pos, paddlePos) {
-			$ball.css({
-				left: pos.x,
-				top: pos.y
-			}); 
-
-			if (settings.player == 2){
-				$paddle1.css({
-					top: paddlePos[0]
-				});
-			} else if (settings.player == 1){
-				$paddle2.css({
-					top: paddlePos[1]
-				});
-			}	
-			
+		// Sync with the server.
+		socket.on('sync', function(game) {
+			// TODO: Sync the local game instance with the provided
 		});
 
-		var paddleMaxY = $board.innerHeight() - 
-			board_padding - settings.paddle.dimensions.height;
+
+		// TODO: Move requirements-checking to right after page load.
+		// if (!canvas.getContext()) {
+		// 	alert('Your browser doesn\'t support the canvas!');
+		// 	return;
+		// }
+
+		// Run the simple game loop.
+		var ctx = canvas.getContext('2d');
+		setInterval(function() {
+			gameSettings.game.render(ctx);
+		}, gameSettings.refreshIntervalMs);
 
 		// Send paddle position.
 		$(document).mousemove(function(e) {
 			// Get the relative y-pos to the board.
 			var relativeY = e.pageY-$board.offset().top;
+			var paddleMaxY = $canvas.height();
 			
 			// Get the constrained y-pos.
 			var constrY = relativeY < board_padding
@@ -75,56 +68,17 @@ $(document).ready(function() {
 			// console.log('constrained: ' + constrY);
 
 			// Update the server.
-			var update = { player: settings.player_id, y: constrY };
-			socket.emit('update', update);
-
-			// Move the paddle.
-			var $currentPaddle = $('#paddle'+settings.player);
-			
-			$currentPaddle.css({
-				top: constrY
-			});
+			var update = { playerIdx: gameSettings.playerIdx, y: constrY };
+			socket.emit('update-paddley', update);
 		});
 	};
 
-	// Initialize the board.
-	var initBoard = function(settings) {
-		// Ball
-		$ball.css({
-			left: settings.ball.location.x,
-			top: settings.ball.location.y,
-			height: settings.ball.dimensions.height,
-			width: settings.ball.dimensions.width
-		});
-		$ball.removeClass('hidden');
-
-		// Paddles
-		$paddles.css({
-			height: settings.paddle.dimensions.height,
-			width: settings.paddle.dimensions.width
-		});		
-
-		// Position paddles.
-		$paddle1.css({
-			left: $board.css('padding-left')
-		});
-		$paddle2.css({
-			left: ($board.innerWidth()-parseInt($board.css('padding-right')))-$paddle2.width()
-		});
-		$paddles.removeClass('hidden');
-	}
-
 	// Init the game.
-	socket.on('init', function(data) {
-		console.log('received init: player=' + data.player);
-		settings.player_id = data.player;
-		settings.player = data.player + 1;
-		settings.ball.dimensions.height = settings.ball.dimensions.width = data.ball_size;
-		settings.paddle.dimensions.height = data.paddle_height;
-		settings.paddle.dimensions.width = data.paddle_width;
-
-		// Init the board.
-		initBoard(settings);
+	socket.on('init', function(playerIdx, game) {
+		console.log('in init');
+		console.log('received init: player=' + playerIdx);
+		gameSettings.playerIdx = playerIdx;
+		gameSettings.game = game;
 
 		// Invoke after-init code.
 		afterInit();

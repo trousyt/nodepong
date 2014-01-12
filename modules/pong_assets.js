@@ -1,98 +1,76 @@
 /*
  * pong_assets.js
  * Contains pong asset classes (ball, paddles, etc.)
- * Used on both the server and client.
+ * Utilized on both the server and client.
  */
-
-/*
- * board: {width, height, padding}
- * paddles[idx] = {y, height, width, offset}
- * ball = {x, y, angle, dx, dy, da}
- */
-
-public function Physics(board, paddles, ball, scoreCallback) {
-	this.board = board;
-	this.paddles = paddles;
-	this.ball = ball;
-	this.scoreCallback = scoreCallback;
-
-	this.movePaddle = function(idx, y) {
-		paddles[idx].y = y;
-	}
-
-	this.update = function() {
-		var board = this.board;
-		var paddles = this.paddles;
-		var ball = this.ball;
-
-		ball.x = ball.x + Math.cos(ball.angle) * ball.da;
-		ball.y = ball.y + Math.sin(ball.angle) * ball.da;
-		
-		// The ball hit a side-wall.
-		// A score happened!
-		// Todo: Reset the ball position and increment the round (impl init_round event)
-		if (ball.x <= 0) {
-			//scores[1] = scores[1]++;
-			//round = round++;
-			scoreCallback(0, 1);
-			ball.angle = Math.PI - ball.angle;
-		} else if (ball.x >= board.width) {
-			//scores[0] = scores[0]++;
-			//round = round++;
-			scoreCallback(1, 1);
-			ball.angle = Math.PI - ball.angle;
-		}
-
-		// The ball hit a paddle.
-		// Todo: I need to get the width (offset) between the paddle and the board (in CSS, the padding)
-		var paddle_offset = 10;
-
-		//console.log('ball-y: ' + this.y + ', paddle-y: ' + paddles[0])
-		if (ball.x <= (board.padding + paddles.offset + paddles.width) && 
-			ball.x >= paddles.offset &&
-			ball.y >= paddles[0] &&
-			ball.y <= paddles[0] + paddles.height) || ///top
-		   (ball.x >= board.width - (paddles.offset + paddles.width) && 
-			ball.x <= board.width - paddles.offset &&
-			ball.y >= paddles[1] && 
-			ball.y <= paddles[1] + paddles.height) {
-			ball.angle = Math.PI - ball_angle;
-		}
-	
-		// The ball hit a top/bottom wall.
-		if (ball.y <= 0) {
-			ball.y = ball.dx;
-			ball.angle = 0 - ball.angle;
-			console.log("hit y<=0");
-		} else if (ball.y >= board.height) {
-			ball.y = board.height - ball.dx;
-			ball.angle = 0 - ball.angle;
-			console.log("hit y>= height");
-		}
-	}
-}
+var DEFAULTS = {};
 
 /*
  * Ball
  */
-public function Ball(x, y, angle, dx, dy, da) {
-	this.x = x;
-	this.y = y;
-	this.angle = angle;
-	this.dx = dx;
-	this.dy = dy;
-	this.da = da;
+
+DEFAULTS.ball = {
+	size: 10,
+	x: 0,
+	y: 0,
+	angle: 0,
+	dx: 10,
+	dy: 10,
+	da: 10
+}
+
+function Ball(size, x, y, angle, dx, dy, da) {
+	this.size = size || 10;
+	this.x = x || 0;
+	this.y = y || 0;
+	this.angle = angle || 0;
+	this.dx = dx || 0;
+	this.dy = dy || 0;
+	this.da = da || 0;
+
+	// this.move = function(newx, newy, newangle, newdx, newdy, newda) {
+	// 	var x = newx || this.x;
+	// 	var y = newy || this.y;
+	// 	var angle = newangle || this.angle;
+	// 	var dx = newdx || this.dx;
+	// 	var dy = newdy || this.dy;
+	// 	var da = newda || this.da;
+
+
+	// }
+
+	this.render = function(ctx) {
+		var size = this.size;
+		var x = this.x;
+		var y = this.y;
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(x, y, size / 2, 0, 2 * Math.PI, false);
+		ctx.fillStyle = 'black';
+		ctx.fill();
+		ctx.stroke();
+		ctx.restore();
+	}
 }
 
 /*
  * Paddle
  */
-public function Paddle(x, y, width, height, padding) {
-	this.x = x;
-	this.y = y;
-	this.width = width;
-	this.height = height;
-	this.padding = padding;
+
+DEFAULTS.paddle = {
+	x: 0,
+	y: 0,
+	width: 5,
+	height: 10	
+}
+
+function Paddle(x, y, width, height, padding) {
+	this.x = x || 0;
+	this.y = y || 0;
+	this.width = width || 20;
+	this.height = height || 80;
+	this.padding = padding || 10;
 
 	this.move = function(x, y) {
 		this.x = x;
@@ -114,3 +92,32 @@ public function Paddle(x, y, width, height, padding) {
 		ctx.restore();
 	}
 }
+
+module.exports = (function() {
+	var ball = {};
+	ball.create = function(x, y, angle, dx, dy, da) {
+		return new Ball(x, y, angle, dx, dy, da);
+	};
+	ball.createFromExisting = function(tmpl) {
+		return ball.create(tmpl.x, tmpl.y, tmpl.angle, tmpl.dx, tmpl.dy, tmpl.da);
+	};
+	ball.createDefault = function() {
+		return ball.createFromExisting(DEFAULTS.ball);
+	};
+
+	var paddle = {};
+	paddle.create = function(x, y, width, height, padding) {
+		return new Paddle(x, y, width, height, padding);
+	};
+	paddle.createFromExisting = function(tmpl) {
+		return paddle.create(tmpl.x, tmpl.y, tmpl.width, tmpl.height, tmpl.padding);
+	};
+	paddle.createDefault = function() {
+		return paddle.createFromExisting(DEFAULTS.paddle);
+	};
+
+	return {
+		ball: ball,
+		paddle: paddle
+	}
+})();
