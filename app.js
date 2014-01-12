@@ -8,7 +8,7 @@ var express = require('express')
   , http = require('http')
   , path = require('path')
   , socketio = require('socket.io')
-  , pongServer = require('./modules/pong_server')
+  , pongServer = require('./modules/game/pong_server')
 
 //var socket = [0, 0];
 

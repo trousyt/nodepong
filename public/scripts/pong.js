@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
 	var socket = io.connect();
-	var gameModule = require('')
+	var gameModule = require('/scripts/game/pong_game.js');
 
 
 	var gameSettings = {
