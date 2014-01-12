@@ -1,6 +1,9 @@
 
 $(document).ready(function() {
 	var socket = io.connect();
+	var gameModule = require('')
+
+
 	var gameSettings = {
 		refreshIntervalMs: 100,
 		playerIdx: -1,
@@ -57,7 +60,7 @@ $(document).ready(function() {
 		$(document).mousemove(function(e) {
 			// Get the relative y-pos to the board.
 			var relativeY = e.pageY-$board.offset().top;
-			var paddleMaxY = $canvas.height();
+			var paddleMaxY = canvas.height;
 			
 			// Get the constrained y-pos.
 			var constrY = relativeY < board_padding
