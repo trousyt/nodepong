@@ -1,9 +1,8 @@
 
 $(document).ready(function() {
 	var socket = io.connect();
-	var gameModule = require('/scripts/game/pong_game.js');
-
-
+	var gameModule = require(['/scripts/game/pong_game.js']);
+	
 	var gameSettings = {
 		refreshIntervalMs: 100,
 		playerIdx: -1,
@@ -71,8 +70,8 @@ $(document).ready(function() {
 			// console.log('constrained: ' + constrY);
 
 			// Update the server.
-			var update = { playerIdx: gameSettings.playerIdx, y: constrY };
-			socket.emit('update-paddley', update);
+			//var update = { playerIdx: gameSettings.playerIdx, y: constrY };
+			socket.emit('update-paddley', constrY);
 		});
 	};
 
