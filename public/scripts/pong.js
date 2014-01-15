@@ -1,7 +1,7 @@
 
 $(document).ready(function() {
 	var socket = io.connect();
-	var gameModule = require(['/scripts/game/pong_game.js']);
+	var gameModule = require(['/scripts/game/pong_game_web.js']);
 	
 	var gameSettings = {
 		refreshIntervalMs: 100,
@@ -52,7 +52,9 @@ $(document).ready(function() {
 		// Run the simple game loop.
 		var ctx = canvas.getContext('2d');
 		setInterval(function() {
-			gameSettings.game.render(ctx);
+			if (gameSettings.game != undefined){
+				gameSettings.game.render(ctx);
+			}
 		}, gameSettings.refreshIntervalMs);
 
 		// Send paddle position.
