@@ -7,6 +7,15 @@
  * 
  */
 
+ var requirejs = require('requirejs');
+ requirejs.config({
+ 	baseUrl: './modules/game/',
+ 	nodeRequire: require
+ });
+
+var gameModule = requirejs('./pong_game');
+
+
 // Server vars.
 var gameLoopIntervalMs = 100; //75;
 var sockets = [];
@@ -32,22 +41,13 @@ var board = {
  */
 exports.register = function(socketio, callback) {
 
-	// CreateGameInstance
-	var	physicsModule = require('./pong_physics'),
-		assetsModule = require('./pong_assets'), 
-		gameModule = require('./pong_game');
-
 	var createGameInstance = function() {
-		var game = gameModule.create(
-			board,
-			physicsModule.create(),
-			assetsModule
-			);
+		var game = gameModule.create(board);
 		games.push(game);
 		return game;
 	};
 
-	var getOpenGame = function() {
+	var findOpenGame = function() {
 		for (var i=0; i < games.length; i++) {
 			var game = games[i];
 			if (!game.isFull()) {
@@ -57,11 +57,18 @@ exports.register = function(socketio, callback) {
 		return null;
 	};
 
-
-	// Catch socket connection events.
+	/**
+	 * SocketIO Event: `Connection`
+	 * Initialize socket and game.
+	 */
 	socketio.sockets.on('connection', function(socket) {
 
 		// Define socket-specific functions.
+		var debug = function(message) {
+			if (socket) {
+				console.log('::' + socket.id + ' ' + message);
+			}		
+		};
 		var lastMessageSent;
 		var sendMessage = function(msg) {
 			if (msg !== lastMessageSent) {
@@ -71,24 +78,27 @@ exports.register = function(socketio, callback) {
 			}
 		};
 
-		//--------
-		// SETUP
-		//--------
+		debug('A new connection was made');
+
+		/*
+		 * Game Setup
+		 */
 		// Join a game (if one open), or create new.
 		var game = undefined;
 		while (game == undefined) {
-			game = getOpenGame() || createGameInstance();
+			game = findOpenGame() || createGameInstance();
 		}
 
 		// Get the current player index.
 		var playerIdx = game.addPlayer();
 		var playerNumber = playerIdx + 1;
-		console.log('Player ' + playerNumber + ' added to game instance ' + game.gameId);
+		debug('Added player ' + playerNumber + ' to game instance ' + game.gameId);
 
-		//--------
-		// START
-		//--------
+		/*
+		 * Initialization
+		 */
 		// Send game init.
+		debug('Initializing client');
 		socket.emit('init', { 
 			playerIdx: playerIdx,
 			game: game
@@ -96,11 +106,13 @@ exports.register = function(socketio, callback) {
 
 		// Receive paddle updates from client.
 		socket.on('update-paddley', function(y){
-			console.log('paddle-y for player ' + playerNumber + ': ' + y);
+			debug('Player set paddle-y: ' + y);
 			game.paddles[playerIdx] = y;
 		});
 
-		// Game loop.
+		/*
+		 * Game Loop
+		 */
 		var loopInterval = gameLoopIntervalMs; //game.isFull() ? gameLoopIntervalMs : 5000;
 		setInterval(function(){
 
@@ -123,4 +135,4 @@ exports.register = function(socketio, callback) {
 	});
 
 	callback();
-}
+};
