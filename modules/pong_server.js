@@ -18,7 +18,6 @@ var gameModule = requirejs('./pong_game');
 
 // Server vars.
 var gameLoopIntervalMs = 100; //75;
-var sockets = [];
 var games = [];
 
 // Text resource strings.

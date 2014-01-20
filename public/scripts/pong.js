@@ -1,21 +1,19 @@
 
 $(document).ready(function() {
 
+	var that = this;
 	require(['scripts/game/pong_game'], function(gameModule) {
 		var socket = io.connect();
 
-		this.game = null;
-		this.gameSettings = {	
-			refreshIntervalMs: 100,
-			playerNumber: function() {
-				return that.game.playerIdx + 1;
+		var gameCtx = {
+			settings: {	
+				refreshInterval: 100
 			}
 		};
 
 		// Reference DOM elements.
 		var $board = $('#board');
 		var $alert = $('#alert');
-		var $canvas = $('#game-canvas');
 		var canvas = document.getElementById('game-canvas');
 		var board_padding = parseInt($board.css('padding'));
 
@@ -23,23 +21,20 @@ $(document).ready(function() {
 		// ==========================
 		// START
 		// --------------------------
-		var that = this;
+		var self = that;
 		var syncGame = function(game) {
-			this.game.sync(game);
+			gameCtx.game.sync(game);
 			console.log('Finished syncing game');
-			console.log(this.game);
 		};
 
 		// Init the game.
-		socket.on('init', function(playerIdx, game) {
-			console.log('in init');
-			console.log('received init: player=' + playerIdx);
-			console.log(that);
+		socket.on('init', function(init) {
+			console.log('Received init for player ' + init.playerIdx);
 
 			// Create the game instance and immediately sync it.
-			that.game = gameModule.create();
-			that.game.playerIdx = playerIdx;
-			syncGame(game);
+			gameCtx.game = gameModule.create();
+			gameCtx.game.playerIdx = init.playerIdx;
+			syncGame(init.game);
 
 			// Invoke after-init code.
 			afterInit();
@@ -47,20 +42,25 @@ $(document).ready(function() {
 
 		// Start after initialized.
 		var afterInit = function() {
-			console.log('in afterInit');
 
-			// Receive display events.
+			/*
+			 * Event: alert
+			 * Receive display events.
+			 */
 			socket.on('alert', function(alert) {
-				
 				$alert.show(1000);
 				$alert.text(alert);
 				//if (!perpetual) $alert.hide(1000 );
-
 			});
 
-			// Sync with the server.
+			/* 
+			 * Event: sync
+			 * Syncs the server game instance with the client.
+			 */
 			socket.on('sync', function(game) {
-				// TODO: Sync the local game instance with the provided
+				console.log('in sync handler');
+				console.log(game);
+				gameCtx.game.sync(game);
 			});
 
 
@@ -73,10 +73,8 @@ $(document).ready(function() {
 			// Run the simple game loop.
 			var ctx = canvas.getContext('2d');
 			setInterval(function() {
-				if (gameSettings.game != undefined){
-					gameSettings.game.render(ctx);
-				}
-			}, gameSettings.refreshIntervalMs);
+				gameCtx.game.render(ctx);
+			}, gameCtx.settings.refreshInterval);
 
 			// Send paddle position.
 			$(document).mousemove(function(e) {

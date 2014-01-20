@@ -1,4 +1,5 @@
-/* Physics
+/* 
+ * pong_physics.js
  * game: PongGame instance
  * scoreCallback = function(playerIdx, increment)
  */

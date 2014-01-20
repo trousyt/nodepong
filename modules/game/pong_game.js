@@ -1,4 +1,5 @@
-/* PongGame
+/* 
+ * pong_game.js
  * board: {width, height, padding}
  * paddles[idx] = {y, height, width, offset}
  * ball = {x, y, angle, dx, dy, da}
@@ -36,14 +37,6 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 		}
 	}
 
-	PongGame.prototype.sync = function(game) {
-		for (var prop in game) {
-			if (game.hasOwnProperty()) {
-				this[prop] = game[prop];
-			}
-		}
-	};
-
 	PongGame.prototype.setPaddleInitializer = function(fn) {
 		options.paddleInit = fn;
 	};
@@ -55,7 +48,8 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	PongGame.prototype.addPlayer = function() {
 		var playerIdx = this.getPlayerIdx();
 		if (playerIdx < 0) return -1;
-		this.paddles[playerIdx] = options.paddleInit();
+		//this.paddles[playerIdx] = options.paddleInit();
+		this.paddles.push(options.paddleInit());
 		return playerIdx;
 	};
 
@@ -79,6 +73,28 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 		}
 	};
 
+	PongGame.prototype.sync = function(source) {
+
+		var sync = function(source, target, prefix) {
+			for (var prop in source) {
+				if (source.hasOwnProperty(prop)) {
+					if (typeof source[prop] === 'object') {
+						console.log(prefix + 'Syncing object: ' + prop);
+						sync(source[prop], target[prop], prefix + '>');
+						continue;
+					}
+
+					console.log(prefix + 'Syncing property: ' + prop);
+					target = target || {};
+					target[prop] = source[prop];
+				}
+			}
+		};
+
+		sync(source, this, '');;
+		
+	};
+
 	PongGame.prototype.update = function() {
 		if (!physics) {
 			console.log("Physics needs to run but isn't initialized yet");
@@ -99,17 +115,22 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	};
 
 	PongGame.prototype.render = function(ctx) {
-		for (var paddle in this.paddles) {
-			paddle.render(ctx);
+		if (this.paddles.count > 0) {
+			for (var paddle in this.paddles) {
+				paddle.render(ctx);
+			}
+		}
+
+		if (this.balls.count > 0) {
+			for (var ball in this.balls) {
+				ball.render(ctx);
+			}
 		}
 	};
 
 	return {
 		create: function(board, options) {
 			return new PongGame(board, options);
-		},
-		sync: function(game) {
-
 		}
 	};
 
