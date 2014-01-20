@@ -91,6 +91,7 @@ exports.register = function(socketio, callback) {
 			// Attempt to add the player to an open game.
 			var playerIdx = game.addPlayer();
 			if (playerIdx < 0) {
+				console.log('Couldn\'t be added to game ' + game.gameId);
 				game = undefined;
 			}
 		}
@@ -112,7 +113,7 @@ exports.register = function(socketio, callback) {
 		// Receive paddle updates from client.
 		socket.on('update-paddley', function(y){
 			debug('Player set paddle-y: ' + y);
-			game.paddles[playerIdx] = y;
+			game.paddles[playerIdx].y = y;
 		});
 
 		/*
