@@ -74,6 +74,23 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 		}
 	};
 
+	PongGame.prototype.createAsset = function(name) {
+		var creators = [{
+			'paddles': this.options.paddleInit,
+			'balls': this.options.ballInit
+		}];
+
+		// Handle error case.
+		if (typeof creators[name] === 'undefined') {
+			throw {
+				name: 'NoObjCreatorDefined',
+				message: 'No object creator was defined for object ' + name
+			};
+		}
+
+		return creators[name]();
+	};
+
 	PongGame.prototype.sync = function(source) {
 
 		var sync = function(source, target, prefix) {
@@ -83,21 +100,16 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 				if (source.hasOwnProperty(prop)) {
 					if (typeof source[prop] === 'object') {
 						console.log(prefix + 'Syncing object: ' + prop);
-						console.log(source[prop]);
-						target[prop] = target[prop] || {};
+						target[prop] = target[prop] || {};	// TODO: Create the asset properly
 						sync(source[prop], target[prop], prefix + '>');
-						//console.log(prefix + 'Object is now:');
-						//console.log(target[prop]);
 						continue;
 					}
 
-					console.log(prefix + 'Syncing property: "' + prop + '" with value "' + source[prop] + '"');
-					//target = target || {};
+					console.log(prefix + "Syncing property: '" + prop + "' with value '" + source[prop] + "'");;
 					target[prop] = source[prop];
-					console.log(prefix + 'Target property is now: ' + target[prop]);
-				}
-			}
-		};
+				} // /if
+			} // /for
+		}; // /sync
 
 		sync(source, this);
 		
@@ -105,8 +117,10 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 
 	PongGame.prototype.update = function() {
 		if (!physics) {
-			console.log("Physics needs to run but isn't initialized yet");
-			return;
+			throw { 
+				name: 'PhysicsNotInitialized',
+				message: 'Physics needs to run, but isn\'t initialized yet'
+			};
 		}
 
 		physics.update(this, function(playerIdx) {
@@ -124,14 +138,15 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 
 	PongGame.prototype.render = function(ctx) {
 		//console.log(this.paddles);
-		if (this.paddles.count > 0) {
-			for (var paddle in this.paddles) {
-				paddle.render(ctx);
+		if (this.paddles.length > 0) {
+			for (var idx in this.paddles) {
+				console.log('Attempting to render paddle ' + idx);
+				this.paddles[idx].render(ctx);
 			}
 		}
 
 		//console.log(this.balls);
-		if (this.balls.count > 0) {
+		if (this.balls.length > 0) {
 			for (var ball in this.balls) {
 				ball.render(ctx);
 			}
