@@ -23,6 +23,7 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 		this.scores = [0,0];		// Scores array
 		this.round = 1;				// Round counter
 		this.gameId = nextGameId++;	// Unique game identifier
+		this.started = false;
 
 		options.paddleInit = assetsModule.paddle.createDefault;
 		options.ballInit = assetsModule.ball.createDefault;
@@ -46,7 +47,7 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	}
 
 	PongGame.prototype.addPlayer = function() {
-		var playerIdx = this.getPlayerIdx();
+		var playerIdx = this._getPlayerIdx();
 		console.log('got player idx with id ' + playerIdx);
 		if (playerIdx < 0) return -1;
 		this.paddles.push(options.paddleInit());
@@ -58,27 +59,30 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 		this.balls.push(ball);
 	};
 
-	PongGame.prototype.getPlayerIdx = function() {
-		return this.isFull() || this.paddles.count === 0 ? -1 :
+	PongGame.prototype._getPlayerIdx = function() {
+		return this.isFull() || this.paddles.length === 0 ? -1 :
 				this.paddles[0] ? 1 : 0;
 	};
 
 	PongGame.prototype.isFull = function() {
-		return this.paddles.count > 0 && 
+		return this.paddles.length === 2 && 
 			this.paddles[0] && this.paddles[1];
 	};
 
 	PongGame.prototype.start = function() {
+		if (this.started) return;
+
+		this.started = true;
 		if (this.balls.length === 0) {
 			this.balls.push()
-		}
+		}	
 	};
 
 	PongGame.prototype.createAsset = function(name) {
-		var creators = [{
+		var creators = {
 			'paddles': this.options.paddleInit,
 			'balls': this.options.ballInit
-		}];
+		};
 
 		// Handle error case.
 		if (typeof creators[name] === 'undefined') {

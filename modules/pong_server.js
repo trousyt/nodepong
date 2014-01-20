@@ -119,7 +119,6 @@ exports.register = function(socketio, callback) {
 		/*
 		 * Game Loop
 		 */
-		var loopInterval = gameLoopInterval; //game.isFull() ? gameLoopInterval : 5000;
 		setInterval(function(){
 
 			// Verify the game meets all sufficient conditions to start
@@ -128,14 +127,23 @@ exports.register = function(socketio, callback) {
 				return;
 			}
 
+			// If we get here, the game is full and we can start.
+			// When we start, sync the client again.
+			if (!game.started) {
+				debug('Starting game!');
+				game.start();
+				socket.emit('init-match', game);
+			}
+
 			// Update the game instance, which will in turn update the physics.
 			game.update();
 			
 			// TODO: Replace 'draw' event with 'sync' event.
+			// This can run on a much slower interval.
 			//socket.emit('draw', ball_pos, paddles);
 			//socket.emit('sync', game);
 
-		}, loopInterval);
+		}, gameLoopInterval);
 
 	});
 
