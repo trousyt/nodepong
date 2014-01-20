@@ -15,9 +15,9 @@
 
 var gameModule = requirejs('./pong_game');
 
-
 // Server vars.
-var gameLoopIntervalMs = 100; //75;
+var gameLoopInterval = 100;		// .1s
+var gameSyncInterval = 20000;	// 25s
 var games = [];
 
 // Text resource strings.
@@ -56,7 +56,7 @@ exports.register = function(socketio, callback) {
 		return null;
 	};
 
-	/**
+	/*
 	 * SocketIO Event: `Connection`
 	 * Initialize socket and game.
 	 */
@@ -65,7 +65,7 @@ exports.register = function(socketio, callback) {
 		// Define socket-specific functions.
 		var debug = function(message) {
 			if (socket) {
-				console.log('::' + socket.id + ' ' + message);
+				console.log(socket.id + ' ' + message);
 			}		
 		};
 		var lastMessageSent;
@@ -82,14 +82,19 @@ exports.register = function(socketio, callback) {
 		/*
 		 * Game Setup
 		 */
+
 		// Join a game (if one open), or create new.
 		var game = undefined;
 		while (game == undefined) {
 			game = findOpenGame() || createGameInstance();
+
+			// Attempt to add the player to an open game.
+			var playerIdx = game.addPlayer();
+			if (playerIdx < 0) {
+				game = undefined;
+			}
 		}
 
-		// Get the current player index.
-		var playerIdx = game.addPlayer();
 		var playerNumber = playerIdx + 1;
 		debug('Added player ' + playerNumber + ' to game instance ' + game.gameId);
 
@@ -99,6 +104,7 @@ exports.register = function(socketio, callback) {
 		// Send game init.
 		debug('Initializing client');
 		socket.emit('init', { 
+			gameLoopInterval: gameLoopInterval,
 			playerIdx: playerIdx,
 			game: game
 		});
@@ -112,7 +118,7 @@ exports.register = function(socketio, callback) {
 		/*
 		 * Game Loop
 		 */
-		var loopInterval = gameLoopIntervalMs; //game.isFull() ? gameLoopIntervalMs : 5000;
+		var loopInterval = gameLoopInterval; //game.isFull() ? gameLoopInterval : 5000;
 		setInterval(function(){
 
 			// Verify the game meets all sufficient conditions to start
@@ -121,8 +127,7 @@ exports.register = function(socketio, callback) {
 				return;
 			}
 
-			// Update the game instance, which
-			// will in turn update the physics.
+			// Update the game instance, which will in turn update the physics.
 			game.update();
 			
 			// TODO: Replace 'draw' event with 'sync' event.

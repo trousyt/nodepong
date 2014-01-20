@@ -47,8 +47,8 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 
 	PongGame.prototype.addPlayer = function() {
 		var playerIdx = this.getPlayerIdx();
+		console.log('got player idx with id ' + playerIdx);
 		if (playerIdx < 0) return -1;
-		//this.paddles[playerIdx] = options.paddleInit();
 		this.paddles.push(options.paddleInit());
 		return playerIdx;
 	};
@@ -59,12 +59,13 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	};
 
 	PongGame.prototype.getPlayerIdx = function() {
-		if (this.isFull()) return -1;
-		return this.paddles[0] ? 1 : 0;
+		return this.isFull() || this.paddles.count === 0 ? -1 :
+				this.paddles[0] ? 1 : 0;
 	};
 
 	PongGame.prototype.isFull = function() {
-		return this.paddles[0] && this.paddles[1];
+		return this.paddles.count > 0 && 
+			this.paddles[0] && this.paddles[1];
 	};
 
 	PongGame.prototype.start = function() {
@@ -76,22 +77,29 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	PongGame.prototype.sync = function(source) {
 
 		var sync = function(source, target, prefix) {
+			prefix = prefix || '';
+
 			for (var prop in source) {
 				if (source.hasOwnProperty(prop)) {
 					if (typeof source[prop] === 'object') {
 						console.log(prefix + 'Syncing object: ' + prop);
+						console.log(source[prop]);
+						target[prop] = target[prop] || {};
 						sync(source[prop], target[prop], prefix + '>');
+						//console.log(prefix + 'Object is now:');
+						//console.log(target[prop]);
 						continue;
 					}
 
-					console.log(prefix + 'Syncing property: ' + prop);
-					target = target || {};
+					console.log(prefix + 'Syncing property: "' + prop + '" with value "' + source[prop] + '"');
+					//target = target || {};
 					target[prop] = source[prop];
+					console.log(prefix + 'Target property is now: ' + target[prop]);
 				}
 			}
 		};
 
-		sync(source, this, '');;
+		sync(source, this);
 		
 	};
 
@@ -115,12 +123,14 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	};
 
 	PongGame.prototype.render = function(ctx) {
+		//console.log(this.paddles);
 		if (this.paddles.count > 0) {
 			for (var paddle in this.paddles) {
 				paddle.render(ctx);
 			}
 		}
 
+		//console.log(this.balls);
 		if (this.balls.count > 0) {
 			for (var ball in this.balls) {
 				ball.render(ctx);

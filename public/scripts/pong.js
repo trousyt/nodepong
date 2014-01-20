@@ -1,13 +1,14 @@
+'use strict';
 
 $(document).ready(function() {
-
 	var that = this;
+
 	require(['scripts/game/pong_game'], function(gameModule) {
 		var socket = io.connect();
 
 		var gameCtx = {
 			settings: {	
-				refreshInterval: 100
+				gameLoopInterval: 100
 			}
 		};
 
@@ -21,30 +22,16 @@ $(document).ready(function() {
 		// ==========================
 		// START
 		// --------------------------
-		var self = that;
 		var syncGame = function(game) {
 			gameCtx.game.sync(game);
 			console.log('Finished syncing game');
 		};
 
-		// Init the game.
-		socket.on('init', function(init) {
-			console.log('Received init for player ' + init.playerIdx);
-
-			// Create the game instance and immediately sync it.
-			gameCtx.game = gameModule.create();
-			gameCtx.game.playerIdx = init.playerIdx;
-			syncGame(init.game);
-
-			// Invoke after-init code.
-			afterInit();
-		});
-
 		// Start after initialized.
 		var afterInit = function() {
 
 			/*
-			 * Event: alert
+			 * SocketIO Event: `alert`
 			 * Receive display events.
 			 */
 			socket.on('alert', function(alert) {
@@ -54,27 +41,18 @@ $(document).ready(function() {
 			});
 
 			/* 
-			 * Event: sync
+			 * SocketIO Event: `sync`
 			 * Syncs the server game instance with the client.
 			 */
 			socket.on('sync', function(game) {
-				console.log('in sync handler');
-				console.log(game);
-				gameCtx.game.sync(game);
+				syncGame(game);
 			});
 
-
-			// TODO: Move requirements-checking to right after page load.
-			// if (!canvas.getContext()) {
-			// 	alert('Your browser doesn\'t support the canvas!');
-			// 	return;
-			// }
-
-			// Run the simple game loop.
+			// Run the game loop.
 			var ctx = canvas.getContext('2d');
 			setInterval(function() {
 				gameCtx.game.render(ctx);
-			}, gameCtx.settings.refreshInterval);
+			}, gameCtx.settings.gameLoopInterval);
 
 			// Send paddle position.
 			$(document).mousemove(function(e) {
@@ -91,10 +69,30 @@ $(document).ready(function() {
 				// console.log('constrained: ' + constrY);
 
 				// Update the server.
-				//var update = { playerIdx: gameSettings.playerIdx, y: constrY };
 				socket.emit('update-paddley', constrY);
 			});
 		};
+
+		/*
+		 * SocketIO Event: `init`
+		 * Initializes the client with settings and game object.
+		 */
+		socket.on('init', function(init) {
+			console.log('Received init for player ' + init.playerIdx);
+
+			// TODO: Update game board CSS settings from init.game.board
+
+			// Create the game instance and immediately sync it.
+			gameCtx.settings.gameLoopInterval = init.gameLoopInterval;
+			gameCtx.playerIdx = init.playerIdx;
+			gameCtx.game = gameModule.create();
+			syncGame(init.game);
+
+			// Invoke after-init code.
+			afterInit();
+		});
+
+		
 
 	}); // /requirejs
 

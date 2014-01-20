@@ -85,6 +85,8 @@
 		var width = ctx.canvas.width();
 		var height = ctx.canvas.height();
 
+		console.log('canvas width: ' + width + ', height: ' + height);
+
 		// When the coordinates are out of bounds,
 		// just return immediately.
 		if (this.x > width || this.y > height) {
