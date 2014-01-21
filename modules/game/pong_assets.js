@@ -83,10 +83,8 @@
 	};
 
 	Paddle.prototype.render = function(ctx) {
-		var width = ctx.canvas.width();
-		var height = ctx.canvas.height();
-
-		console.log("canvas width: " + width + ", height: " + height);
+		var width = ctx.canvas.width;
+		var height = ctx.canvas.height;
 
 		// When the coordinates are out of bounds,
 		// just return immediately.
@@ -94,10 +92,14 @@
 			return;
 		}
 
+		console.log("Rendering paddle at (" + this.x + "," + this.y + ")");
 		ctx.save();
+		ctx.fillStyle = "white";
 		ctx.fillRect(this.x, this.y, this.width, this.height);
+		ctx.stroke();
 		ctx.restore();
 	};
+
 
 	return (function() {
 		var ball = {
@@ -127,7 +129,7 @@
 		return {
 			ball: ball,
 			paddle: paddle
-		}
+		};
 	})();
 
  }); // /define

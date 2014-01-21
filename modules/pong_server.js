@@ -54,7 +54,7 @@ exports.register = function(socketio, callback) {
 				return game;
 			}
 		}
-		return null;
+		return createGameInstance();
 	};
 
 	/*
@@ -84,19 +84,9 @@ exports.register = function(socketio, callback) {
 		 * Game Setup
 		 */
 
-		// Join a game (if one open), or create new.
-		var game = undefined;
-		while (game == undefined) {
-			game = findOpenGame() || createGameInstance();
-
-			// Attempt to add the player to an open game.
-			var playerIdx = game.addPlayer();
-			if (playerIdx < 0) {
-				console.log("Couldn't be added to game " + game.gameId);
-				game = undefined;
-			}
-		}
-
+		// Find an open game (or create new).
+		var game = findOpenGame();
+		var playerIdx = game.addPlayer();
 		var playerNumber = playerIdx + 1;
 		debug("Added player " + playerNumber + " to game instance " + game.gameId);
 

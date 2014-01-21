@@ -9,7 +9,6 @@
 var nextGameId = 0;
 
 define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule) {
-
 	var physics = physicsModule.create();
 
 	// Private instance vars.
@@ -47,23 +46,44 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		options.ballInit = fn;
 	}
 
+	PongGame.prototype._getPlayerIdx = function() {
+		return this.isFull() ? -1 :
+			this.paddles.length === 0 ? 0 :
+			this.paddles[0] ? 1 : 0;
+	};
+
 	PongGame.prototype.addPlayer = function() {
 		var playerIdx = this._getPlayerIdx();
-		console.log("got player idx with id " + playerIdx);
 		if (playerIdx < 0) return -1;
-		this.paddles.push(options.paddleInit());
+		this.addPaddle();
 		return playerIdx;
 	};
 
 	PongGame.prototype.addBall = function(ball) {
 		ball = ball || options.ballInit();
+
+		if (!ball) {
+			throw {
+				name: "NoBallCreated",
+				message: "No ball could be created. A ball initializer or ball asset must be provided."
+			};
+		}
+
 		this.balls.push(ball);
 	};
 
-	PongGame.prototype._getPlayerIdx = function() {
-		return this.isFull() || this.paddles.length === 0 ? -1 :
-				this.paddles[0] ? 1 : 0;
-	};
+	PongGame.prototype.addPaddle = function(paddle) {
+		paddle = paddle || options.paddleInit();
+
+		if (!paddle) {
+			throw {
+				name: "NoPaddleCreated",
+				message: "No paddle could be created. A paddle initializer or paddle asset must be provided."
+			}
+		}
+
+		this.paddles.push(paddle);
+	}
 
 	PongGame.prototype.isFull = function() {
 		return this.paddles.length === 2 && 
@@ -79,45 +99,50 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		}	
 	};
 
-	PongGame.prototype.createAsset = function(name) {
+	PongGame.prototype._createAsset = function(name) {
+		console.log("Creating asset for " + name);
 		var creators = {
-			"paddles": this.options.paddleInit,
-			"balls": this.options.ballInit
+			"paddles": options.paddleInit,
+			"balls": options.ballInit
 		};
 
 		// Handle error case.
 		if (typeof creators[name] === "undefined") {
-			throw {
-				name: "NoObjCreatorDefined",
-				message: "No object creator was defined for object " + name
-			};
+			return {};
+			// throw {
+			// 	name: "NoObjCreatorDefined",
+			// 	message: "No object creator was defined for object " + name
+			// };
 		}
 
 		return creators[name]();
 	};
 
 	PongGame.prototype.sync = function(source) {
-
-		var sync = function(source, target, prefix) {
-			prefix = prefix || "";
+		var parent = "";
+		var that = this;
+		var sync = function(source, target, level) {
+			level = level || 0;
 
 			for (var prop in source) {
-				if (source.hasOwnProperty(prop)) {
-					if (typeof source[prop] === "object") {
-						console.log(prefix + "Syncing object: " + prop);
-						target[prop] = target[prop] || {};	// TODO: Create the asset properly
-						sync(source[prop], target[prop], prefix + ">");
-						continue;
-					}
+				if (!source.hasOwnProperty(prop)) continue;
 
-					console.log(prefix + "Syncing property: '" + prop + "' with value '" + source[prop] + "'");;
-					target[prop] = source[prop];
-				} // /if
+				// Make note of the parent so we can create the proper object
+				// when necessary.
+				if (level === 0) parent = prop;
+				if (typeof source[prop] === "object") {
+					console.log("Syncing object: " + prop);
+					target[prop] = target[prop] || that._createAsset(parent);
+					sync(source[prop], target[prop], level + 1);
+					continue;
+				}
+
+				console.log("Syncing property: '" + prop + "' with value '" + source[prop] + "'");;
+				target[prop] = source[prop];
 			} // /for
 		}; // /sync
 
 		sync(source, this);
-		
 	};
 
 	PongGame.prototype.update = function() {
@@ -145,7 +170,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		//console.log(this.paddles);
 		if (this.paddles.length > 0) {
 			for (var idx in this.paddles) {
-				console.log("Attempting to render paddle " + idx);
+				//console.log("Attempting to render paddle " + idx);
 				this.paddles[idx].render(ctx);
 			}
 		}

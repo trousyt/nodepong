@@ -70,6 +70,9 @@ $(document).ready(function() {
 
 				// Update the server.
 				socket.emit("update-paddley", constrY);
+
+				// TODO: Update the paddle pos on the game instance.
+				gameCtx.game.paddles[gameCtx.playerIdx].y = constrY;
 			});
 		};
 
