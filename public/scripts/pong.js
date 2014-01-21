@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
 $(document).ready(function() {
 	var that = this;
 
-	require(['scripts/game/pong_game'], function(gameModule) {
+	require(["scripts/game/pong_game"], function(gameModule) {
 		var socket = io.connect();
 
 		var gameCtx = {
@@ -13,10 +13,10 @@ $(document).ready(function() {
 		};
 
 		// Reference DOM elements.
-		var $board = $('#board');
-		var $alert = $('#alert');
-		var canvas = document.getElementById('game-canvas');
-		var board_padding = parseInt($board.css('padding'));
+		var $board = $("#board");
+		var $alert = $("#alert");
+		var canvas = document.getElementById("game-canvas");
+		var board_padding = parseInt($board.css("padding"));
 
 
 		// ==========================
@@ -24,7 +24,7 @@ $(document).ready(function() {
 		// --------------------------
 		var syncGame = function(game) {
 			gameCtx.game.sync(game);
-			console.log('Finished syncing game');
+			console.log("Finished syncing game");
 		};
 
 		// Start after initialized.
@@ -34,7 +34,7 @@ $(document).ready(function() {
 			 * SocketIO Event: `alert`
 			 * Receive display events.
 			 */
-			socket.on('alert', function(alert) {
+			socket.on("alert", function(alert) {
 				$alert.show(1000);
 				$alert.text(alert);
 				//if (!perpetual) $alert.hide(1000 );
@@ -44,12 +44,12 @@ $(document).ready(function() {
 			 * SocketIO Event: `sync`
 			 * Syncs the server game instance with the client.
 			 */
-			socket.on('sync', function(game) {
+			socket.on("sync", function(game) {
 				syncGame(game);
 			});
 
 			// Run the game loop.
-			var ctx = canvas.getContext('2d');
+			var ctx = canvas.getContext("2d");
 			setInterval(function() {
 				gameCtx.game.render(ctx);
 			}, gameCtx.settings.gameLoopInterval);
@@ -65,11 +65,11 @@ $(document).ready(function() {
 					? board_padding : relativeY > paddleMaxY 
 						? paddleMaxY : relativeY;
 
-				// console.log('relative: ' + relativeY);
-				// console.log('constrained: ' + constrY);
+				// console.log("relative: " + relativeY);
+				// console.log("constrained: " + constrY);
 
 				// Update the server.
-				socket.emit('update-paddley', constrY);
+				socket.emit("update-paddley", constrY);
 			});
 		};
 
@@ -77,8 +77,8 @@ $(document).ready(function() {
 		 * SocketIO Event: `init`
 		 * Initializes the client with settings and game object.
 		 */
-		socket.on('init', function(init) {
-			console.log('Received init for player ' + init.playerIdx);
+		socket.on("init", function(init) {
+			console.log("Received init for player " + init.playerIdx);
 
 			// TODO: Update game board CSS settings from init.game.board
 
@@ -94,6 +94,6 @@ $(document).ready(function() {
 
 		
 
-	}); // /requirejs
+	}); // /require
 
 });

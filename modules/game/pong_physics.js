@@ -3,6 +3,7 @@
  * game: PongGame instance
  * scoreCallback = function(playerIdx, increment)
  */
+"use strict";
 
 define(function() {
 
@@ -39,7 +40,7 @@ define(function() {
 			// Todo: I need to get the width (offset) between the paddle and the board (in CSS, the padding)
 			var paddle_offset = 10;
 
-			//console.log('ball-y: ' + this.y + ', paddle-y: ' + paddles[0])
+			//console.log("ball-y: " + this.y + ", paddle-y: " + paddles[0])
 			if ((ball.x <= (board.padding + paddles.offset + paddles.width) && 
 				ball.x >= paddles.offset &&
 				ball.y >= paddles[0] &&

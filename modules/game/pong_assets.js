@@ -3,6 +3,7 @@
  * Contains pong asset classes (ball, paddles, etc.)
  * Utilized on both the server and client.
  */
+"use strict";
 
  define(function() {
 
@@ -51,7 +52,7 @@
 		ctx.save();
 		ctx.beginPath();
 		ctx.arc(x, y, size / 2, 0, 2 * Math.PI, false);
-		ctx.fillStyle = 'black';
+		ctx.fillStyle = "black";
 		ctx.fill();
 		ctx.stroke();
 		ctx.restore();
@@ -85,7 +86,7 @@
 		var width = ctx.canvas.width();
 		var height = ctx.canvas.height();
 
-		console.log('canvas width: ' + width + ', height: ' + height);
+		console.log("canvas width: " + width + ", height: " + height);
 
 		// When the coordinates are out of bounds,
 		// just return immediately.

@@ -6,14 +6,15 @@
  * The server shouldn't care about screen size on the client; take out all code for this
  * 
  */
+"use strict";
 
- var requirejs = require('requirejs');
+ var requirejs = require("requirejs");
  requirejs.config({
- 	baseUrl: './modules/game/',
+ 	baseUrl: "./modules/game/",
  	nodeRequire: require
  });
 
-var gameModule = requirejs('./pong_game');
+var gameModule = requirejs("./pong_game");
 
 // Server vars.
 var gameLoopInterval = 100;		// .1s
@@ -22,9 +23,9 @@ var games = [];
 
 // Text resource strings.
 var res = {
-	CONFIGURATION_ERROR:'A configuration error occurred.',
-	WAITING_FOR_PLAYER: 'Waiting for another player...',
-	WAITING_FOR_TURN: 	'Waiting for turn...'
+	CONFIGURATION_ERROR:"A configuration error occurred.",
+	WAITING_FOR_PLAYER: "Waiting for another player...",
+	WAITING_FOR_TURN: 	"Waiting for turn..."
 };
 
 // Screen dimensions.
@@ -60,12 +61,12 @@ exports.register = function(socketio, callback) {
 	 * SocketIO Event: `Connection`
 	 * Initialize socket and game.
 	 */
-	socketio.sockets.on('connection', function(socket) {
+	socketio.sockets.on("connection", function(socket) {
 
 		// Define socket-specific functions.
 		var debug = function(message) {
 			if (socket) {
-				console.log(socket.id + ' ' + message);
+				console.log(socket.id + " " + message);
 			}		
 		};
 		var lastMessageSent;
@@ -73,11 +74,11 @@ exports.register = function(socketio, callback) {
 			if (msg !== lastMessageSent) {
 				// Notify the user that they must wait...
 				lastMessageSent = msg;
-				socket.emit('alert', msg);;
+				socket.emit("alert", msg);;
 			}
 		};
 
-		debug('A new connection was made');
+		debug("A new connection was made");
 
 		/*
 		 * Game Setup
@@ -91,28 +92,28 @@ exports.register = function(socketio, callback) {
 			// Attempt to add the player to an open game.
 			var playerIdx = game.addPlayer();
 			if (playerIdx < 0) {
-				console.log('Couldn\'t be added to game ' + game.gameId);
+				console.log("Couldn't be added to game " + game.gameId);
 				game = undefined;
 			}
 		}
 
 		var playerNumber = playerIdx + 1;
-		debug('Added player ' + playerNumber + ' to game instance ' + game.gameId);
+		debug("Added player " + playerNumber + " to game instance " + game.gameId);
 
 		/*
 		 * Initialization
 		 */
 		// Send game init.
-		debug('Initializing client');
-		socket.emit('init', { 
+		debug("Initializing client");
+		socket.emit("init", { 
 			gameLoopInterval: gameLoopInterval,
 			playerIdx: playerIdx,
 			game: game
 		});
 
 		// Receive paddle updates from client.
-		socket.on('update-paddley', function(y){
-			debug('Player set paddle-y: ' + y);
+		socket.on("update-paddley", function(y){
+			debug("Player set paddle-y: " + y);
 			game.paddles[playerIdx].y = y;
 		});
 
@@ -130,9 +131,9 @@ exports.register = function(socketio, callback) {
 			// If we get here, the game is full and we can start.
 			// When we start, sync the client again.
 			if (!game.started) {
-				debug('Starting game!');
+				debug("Starting game!");
 				game.start();
-				socket.emit('init-match', game);
+				socket.emit("init-match", game);
 			}
 
 			// Update the game instance, which will in turn update the physics.

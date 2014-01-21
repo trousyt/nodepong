@@ -4,10 +4,11 @@
  * paddles[idx] = {y, height, width, offset}
  * ball = {x, y, angle, dx, dy, da}
  */
+"use strict";
 
 var nextGameId = 0;
 
-define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule) {
+define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule) {
 
 	var physics = physicsModule.create();
 
@@ -48,7 +49,7 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 
 	PongGame.prototype.addPlayer = function() {
 		var playerIdx = this._getPlayerIdx();
-		console.log('got player idx with id ' + playerIdx);
+		console.log("got player idx with id " + playerIdx);
 		if (playerIdx < 0) return -1;
 		this.paddles.push(options.paddleInit());
 		return playerIdx;
@@ -80,15 +81,15 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 
 	PongGame.prototype.createAsset = function(name) {
 		var creators = {
-			'paddles': this.options.paddleInit,
-			'balls': this.options.ballInit
+			"paddles": this.options.paddleInit,
+			"balls": this.options.ballInit
 		};
 
 		// Handle error case.
-		if (typeof creators[name] === 'undefined') {
+		if (typeof creators[name] === "undefined") {
 			throw {
-				name: 'NoObjCreatorDefined',
-				message: 'No object creator was defined for object ' + name
+				name: "NoObjCreatorDefined",
+				message: "No object creator was defined for object " + name
 			};
 		}
 
@@ -98,14 +99,14 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	PongGame.prototype.sync = function(source) {
 
 		var sync = function(source, target, prefix) {
-			prefix = prefix || '';
+			prefix = prefix || "";
 
 			for (var prop in source) {
 				if (source.hasOwnProperty(prop)) {
-					if (typeof source[prop] === 'object') {
-						console.log(prefix + 'Syncing object: ' + prop);
+					if (typeof source[prop] === "object") {
+						console.log(prefix + "Syncing object: " + prop);
 						target[prop] = target[prop] || {};	// TODO: Create the asset properly
-						sync(source[prop], target[prop], prefix + '>');
+						sync(source[prop], target[prop], prefix + ">");
 						continue;
 					}
 
@@ -122,8 +123,8 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 	PongGame.prototype.update = function() {
 		if (!physics) {
 			throw { 
-				name: 'PhysicsNotInitialized',
-				message: 'Physics needs to run, but isn\'t initialized yet'
+				name: "PhysicsNotInitialized",
+				message: "Physics needs to run, but isn't initialized yet"
 			};
 		}
 
@@ -144,7 +145,7 @@ define(['./pong_physics', './pong_assets'], function(physicsModule, assetsModule
 		//console.log(this.paddles);
 		if (this.paddles.length > 0) {
 			for (var idx in this.paddles) {
-				console.log('Attempting to render paddle ' + idx);
+				console.log("Attempting to render paddle " + idx);
 				this.paddles[idx].render(ctx);
 			}
 		}
