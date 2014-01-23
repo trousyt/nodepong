@@ -167,6 +167,8 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 	};
 
 	PongGame.prototype.render = function(ctx) {
+		ctx.clearRect(0, 0, this.board.width, this.board.height);
+
 		//console.log(this.paddles);
 		if (this.paddles.length > 0) {
 			for (var idx in this.paddles) {

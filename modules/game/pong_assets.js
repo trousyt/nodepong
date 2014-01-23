@@ -92,11 +92,9 @@
 			return;
 		}
 
-		console.log("Rendering paddle at (" + this.x + "," + this.y + ")");
 		ctx.save();
 		ctx.fillStyle = "white";
 		ctx.fillRect(this.x, this.y, this.width, this.height);
-		ctx.stroke();
 		ctx.restore();
 	};
 

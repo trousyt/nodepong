@@ -8,7 +8,7 @@ $(document).ready(function() {
 
 		var gameCtx = {
 			settings: {	
-				gameLoopInterval: 100
+				gameLoopInterval: 10
 			}
 		};
 
@@ -51,6 +51,7 @@ $(document).ready(function() {
 			// Run the game loop.
 			var ctx = canvas.getContext("2d");
 			setInterval(function() {
+				gameCtx.game.update();
 				gameCtx.game.render(ctx);
 			}, gameCtx.settings.gameLoopInterval);
 
