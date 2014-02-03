@@ -58,15 +58,16 @@ $(document).ready(function() {
 			// Send paddle position.
 			$(document).mousemove(function(e) {
 				// Get the relative y-pos to the board.
-				var relativeY = e.pageY-$board.offset().top;
-				var paddleMaxY = canvas.height;
-				
+				var relativeY = e.pageY - $board.offset().top - board_padding;
+				var paddleMaxY = $board.height();
+				console.log("relative: " + relativeY);
+				console.log("max: " + paddleMaxY);
 				// Get the constrained y-pos.
-				var constrY = relativeY < board_padding
-					? board_padding : relativeY > paddleMaxY 
+				var constrY = relativeY < 0
+					? 0 : relativeY > paddleMaxY 
 						? paddleMaxY : relativeY;
 
-				// console.log("relative: " + relativeY);
+				
 				// console.log("constrained: " + constrY);
 
 				// Update the server.
