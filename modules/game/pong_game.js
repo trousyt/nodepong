@@ -55,7 +55,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 	PongGame.prototype.addPlayer = function() {
 		var playerIdx = this._getPlayerIdx();
 		if (playerIdx < 0) return -1;
-		this.addPaddle();
+		this.addPaddle(playerIdx);
 		return playerIdx;
 	};
 
@@ -72,8 +72,12 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		this.balls.push(ball);
 	};
 
-	PongGame.prototype.addPaddle = function(paddle) {
+	PongGame.prototype.addPaddle = function(idx, paddle) {
 		paddle = paddle || options.paddleInit();
+		if (idx != 0){
+			//paddle.x = this.board.width - paddle.width - this.board.padding;
+			paddle.x = 15;	
+		}
 
 		if (!paddle) {
 			throw {
