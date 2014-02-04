@@ -16,6 +16,7 @@ $(document).ready(function() {
 		var $alert = $("#alert");
 		var canvas = document.getElementById("game-canvas");
 		var $canvas = $(canvas);
+		
 		// ==========================
 		// START
 		// --------------------------
