@@ -79,7 +79,7 @@ $(document).ready(function() {
 
 		/*
 		 * SocketIO Evnet: `init-match`
-		 * Initializes the match.
+		 * Initializes a new match.
 		 */
 		 socket.on("init-match", function(init) {
 		 	// TODO
