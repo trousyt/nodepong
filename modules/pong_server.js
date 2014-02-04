@@ -95,7 +95,7 @@ exports.register = function(socketio, callback) {
 		 */
 		// Send game init.
 		debug("Initializing client");
-		socket.emit("init", { 
+		socket.emit("init-conn", { 
 			gameLoopInterval: gameLoopInterval,
 			playerIdx: playerIdx,
 			game: game
