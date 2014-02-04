@@ -56,7 +56,7 @@ $(document).ready(function() {
 			$(document).mousemove(function(e) {
 				// Get the relative y-pos to the board.
 				var relativeY = e.pageY - $canvas.offset().top;
-				var paddleMaxY = canvas.height;
+				var paddleMaxY = canvas.height - gameCtx.game.paddles[gameCtx.playerIdx].height;
 				
 				console.log("offset: " + $canvas.offset().top);
 				console.log("relative: " + relativeY);
