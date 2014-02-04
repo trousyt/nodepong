@@ -1,7 +1,7 @@
 /* 
  * pong_game.js
  * board: {width, height, padding}
- * paddles[idx] = {y, height, width, offset}
+ * paddles[idx] = {x, y, height, width, offset}
  * ball = {x, y, angle, dx, dy, da}
  */
 "use strict";
@@ -38,6 +38,12 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		}
 	}
 
+	var getPlayerIdx = function(game) {
+		return game.isFull() ? -1 :
+			game.paddles.length === 0 ? 0 :
+			game.paddles[0] ? 1 : 0;
+	};
+
 	PongGame.prototype.setPaddleInitializer = function(fn) {
 		options.paddleInit = fn;
 	};
@@ -46,14 +52,8 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		options.ballInit = fn;
 	}
 
-	PongGame.prototype._getPlayerIdx = function() {
-		return this.isFull() ? -1 :
-			this.paddles.length === 0 ? 0 :
-			this.paddles[0] ? 1 : 0;
-	};
-
 	PongGame.prototype.addPlayer = function() {
-		var playerIdx = this._getPlayerIdx();
+		var playerIdx = getPlayerIdx(this);
 		if (playerIdx < 0) return -1;
 		this.addPaddle();
 		return playerIdx;

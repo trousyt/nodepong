@@ -13,11 +13,8 @@ $(document).ready(function() {
 		};
 
 		// Reference DOM elements.
-		var $board = $("#board");
 		var $alert = $("#alert");
 		var canvas = document.getElementById("game-canvas");
-		var board_padding = parseInt($board.css("padding"));
-
 
 		// ==========================
 		// START
@@ -58,8 +55,8 @@ $(document).ready(function() {
 			// Send paddle position.
 			$(document).mousemove(function(e) {
 				// Get the relative y-pos to the board.
-				var relativeY = e.pageY - $board.offset().top - board_padding;
-				var paddleMaxY = $board.height();
+				var relativeY = e.pageY;
+				var paddleMaxY = canvas.height;
 				console.log("relative: " + relativeY);
 				console.log("max: " + paddleMaxY);
 				// Get the constrained y-pos.
@@ -79,13 +76,23 @@ $(document).ready(function() {
 		};
 
 		/*
+		 * SocketIO Evnet: `init-match`
+		 * Initializes the match.
+		 */
+		 socket.on("init-match", function(init) {
+		 	// TODO
+		 });
+
+		/*
 		 * SocketIO Event: `init`
 		 * Initializes the client with settings and game object.
 		 */
-		socket.on("init", function(init) {
+		socket.on("init-conn", function(init) {
 			console.log("Received init for player " + init.playerIdx);
 
-			// TODO: Update game board CSS settings from init.game.board
+			// Update game board CSS settings from init.game.board
+			canvas.width = init.game.board.width;
+			canvas.height = init.game.board.height;
 
 			// Create the game instance and immediately sync it.
 			gameCtx.settings.gameLoopInterval = init.gameLoopInterval;
