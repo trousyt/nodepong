@@ -86,9 +86,14 @@ exports.register = function(socketio, callback) {
 
 		// Find an open game (or create new).
 		var game = findOpenGame();
-		var playerIdx = game.addPlayer();
+		var playerIdx = game.addPlayer(socket);
 		var playerNumber = playerIdx + 1;
 		debug("Added player " + playerNumber + " to game instance " + game.gameId);
+
+		// Store the socket on game with the player index.
+		// By placing this code here, PongGame doesn't have
+		// to know anything about sockets.
+		game.sockets[playerIdx] = socket;
 
 		/*
 		 * Initialization
@@ -137,7 +142,9 @@ exports.register = function(socketio, callback) {
 			// TODO: Replace 'draw' event with 'sync' event.
 			// This can run on a much slower interval.
 			//socket.emit('draw', ball_pos, paddles);
-			//socket.emit('sync', game);
+			
+			// Sync the game to prevent cheating.
+			socket.emit('sync', game);
 
 		}, gameLoopInterval);
 

@@ -38,10 +38,25 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		}
 	}
 
+	// Private functions
 	var getPlayerIdx = function(game) {
 		return game.isFull() ? -1 :
 			game.paddles.length === 0 ? 0 :
 			game.paddles[0] ? 1 : 0;
+	};
+
+	var createAsset = function(name) {
+		var creators = {
+			"paddles": options.paddleInit,
+			"balls": options.ballInit
+		};
+
+		// Handle error case.
+		if (typeof creators[name] === "undefined") {
+			return {};
+		}
+
+		return creators[name]();
 	};
 
 	PongGame.prototype.setPaddleInitializer = function(fn) {
@@ -52,7 +67,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		options.ballInit = fn;
 	}
 
-	PongGame.prototype.addPlayer = function() {
+	PongGame.prototype.addPlayer = function(socket) {
 		var playerIdx = getPlayerIdx(this);
 		if (playerIdx < 0) return -1;
 		this.addPaddle(playerIdx);
@@ -101,25 +116,6 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		}	
 	};
 
-	PongGame.prototype._createAsset = function(name) {
-		console.log("Creating asset for " + name);
-		var creators = {
-			"paddles": options.paddleInit,
-			"balls": options.ballInit
-		};
-
-		// Handle error case.
-		if (typeof creators[name] === "undefined") {
-			return {};
-			// throw {
-			// 	name: "NoObjCreatorDefined",
-			// 	message: "No object creator was defined for object " + name
-			// };
-		}
-
-		return creators[name]();
-	};
-
 	PongGame.prototype.sync = function(source) {
 		var parent = "";
 		var that = this;
@@ -134,7 +130,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 				if (level === 0) parent = prop;
 				if (typeof source[prop] === "object") {
 					console.log("Syncing object: " + prop);
-					target[prop] = target[prop] || that._createAsset(parent);
+					target[prop] = target[prop] || createAsset(parent);
 					sync(source[prop], target[prop], level + 1);
 					continue;
 				}
