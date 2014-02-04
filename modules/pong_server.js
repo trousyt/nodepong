@@ -111,10 +111,14 @@ exports.register = function(socketio, callback) {
 			debug("Player set paddle-y: " + y);
 			game.paddles[playerIdx].y = y;	
 
-			socket.emit("update-opponent", {
-				playerIdx : playerIdx,
-				y : y
-			});
+			var opponentSocket = game.sockets[!playerIdx];
+			
+			if (opponentSocket){
+					opponentSocket.emit("update-opponent", {
+					y : y
+				});	
+			}
+			
 		});
 
 		/*

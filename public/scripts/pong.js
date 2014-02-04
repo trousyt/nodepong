@@ -39,12 +39,24 @@ $(document).ready(function() {
 			});
 
 			/* 
+			 * SocketIO Event: `update-opponent`
+			 * Update location of opponents paddle.
+			 */
+			socket.on("update-opponent", function(y) {
+				var opponentIdx = !playerIdx;
+
+				gameCtx.game.paddles[gameCtx.opponentIdx].y = y;
+			});
+
+			/* 
 			 * SocketIO Event: `sync`
 			 * Syncs the server game instance with the client.
 			 */
 			socket.on("sync", function(game) {
 				syncGame(game);
 			});
+
+
 
 			// Run the game loop.
 			var ctx = canvas.getContext("2d");
