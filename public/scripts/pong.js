@@ -15,7 +15,7 @@ $(document).ready(function() {
 		// Reference DOM elements.
 		var $alert = $("#alert");
 		var canvas = document.getElementById("game-canvas");
-
+		var $canvas = $(canvas);
 		// ==========================
 		// START
 		// --------------------------
@@ -55,8 +55,10 @@ $(document).ready(function() {
 			// Send paddle position.
 			$(document).mousemove(function(e) {
 				// Get the relative y-pos to the board.
-				var relativeY = e.pageY;
+				var relativeY = e.pageY - $canvas.offset().top;
 				var paddleMaxY = canvas.height;
+				
+				console.log("offset: " + $canvas.offset().top);
 				console.log("relative: " + relativeY);
 				console.log("max: " + paddleMaxY);
 				// Get the constrained y-pos.
