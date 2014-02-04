@@ -15,6 +15,7 @@ $(document).ready(function() {
 		// Reference DOM elements.
 		var $alert = $("#alert");
 		var canvas = document.getElementById("game-canvas");
+		var $canvas = $(canvas);
 
 		// ==========================
 		// START
@@ -77,7 +78,7 @@ $(document).ready(function() {
 
 		/*
 		 * SocketIO Evnet: `init-match`
-		 * Initializes the match.
+		 * Initializes a new match.
 		 */
 		 socket.on("init-match", function(init) {
 		 	// TODO
