@@ -74,10 +74,8 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 
 	PongGame.prototype.addPaddle = function(idx, paddle) {
 		paddle = paddle || options.paddleInit();
-		if (idx != 0){
-			//paddle.x = this.board.width - paddle.width - this.board.padding;
-			paddle.x = 15;	
-		}
+		if (idx === 0) paddle.x = this.board.padding;
+		else paddle.x = this.board.width - (paddle.width + this.board.padding);
 
 		if (!paddle) {
 			throw {

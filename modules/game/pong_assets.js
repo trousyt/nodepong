@@ -65,8 +65,8 @@
 	 options.paddleDefaults = {
 		x: 0,	
 		y: 0,
-		width: 5,
-		height: 10	
+		width: 20,
+		height: 80
 	};
 
 	function Paddle(x, y, width, height, padding) {
