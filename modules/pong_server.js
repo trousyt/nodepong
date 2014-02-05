@@ -111,7 +111,16 @@ exports.register = function(socketio, callback) {
 		// Receive paddle updates from client.
 		socket.on("update-paddley", function(y){
 			debug("Player set paddle-y: " + y);
-			game.paddles[playerIdx].y = y;
+			game.paddles[playerIdx].y = y;	
+
+			var opponentSocket = game.sockets[!playerIdx];
+			
+			if (opponentSocket){
+					opponentSocket.emit("update-opponent", {
+					y : y
+				});	
+			}
+			
 		});
 
 		/*
