@@ -16,7 +16,7 @@ $(document).ready(function() {
 		var $alert = $("#alert");
 		var canvas = document.getElementById("game-canvas");
 		var $canvas = $(canvas);
-		
+
 		// ==========================
 		// START
 		// --------------------------
@@ -27,6 +27,9 @@ $(document).ready(function() {
 
 		// Start after initialized.
 		var afterInit = function() {
+			var opIdx = gameCtx.playerIdx !== 0 ? 1 : 0;
+			var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
+				opPaddle = gameCtx.game.paddles[opIdx];
 
 			/*
 			 * SocketIO Event: `alert`
@@ -35,7 +38,6 @@ $(document).ready(function() {
 			socket.on("alert", function(alert) {
 				$alert.show(1000);
 				$alert.text(alert);
-				//if (!perpetual) $alert.hide(1000 );
 			});
 
 			/* 
@@ -59,9 +61,9 @@ $(document).ready(function() {
 				var relativeY = e.pageY - $canvas.offset().top;
 				var paddleMaxY = canvas.height - gameCtx.game.paddles[gameCtx.playerIdx].height;
 				
-				console.log("offset: " + $canvas.offset().top);
-				console.log("relative: " + relativeY);
-				console.log("max: " + paddleMaxY);
+				//console.log("offset: " + $canvas.offset().top);
+				//console.log("relative: " + relativeY);
+				//console.log("max: " + paddleMaxY);
 				// Get the constrained y-pos.
 				var constrY = relativeY < 0
 					? 0 : relativeY > paddleMaxY 

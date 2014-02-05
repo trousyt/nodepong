@@ -84,7 +84,8 @@ exports.register = function(socketio, callback) {
 		 * Game Setup
 		 */
 
-		// Find an open game (or create new).
+		// Find an open game (or create new) 
+		// and add the player to the game.
 		var game = findOpenGame();
 		var playerIdx = game.addPlayer(socket);
 		var playerNumber = playerIdx + 1;
@@ -93,6 +94,7 @@ exports.register = function(socketio, callback) {
 		// Store the socket on game with the player index.
 		// By placing this code here, PongGame doesn't have
 		// to know anything about sockets.
+		game.sockets = [];
 		game.sockets[playerIdx] = socket;
 
 		/*
@@ -103,7 +105,7 @@ exports.register = function(socketio, callback) {
 		socket.emit("init-conn", { 
 			gameLoopInterval: gameLoopInterval,
 			playerIdx: playerIdx,
-			game: game
+			game: game.getSyncPayload()
 		});
 
 		// Receive paddle updates from client.
@@ -128,7 +130,7 @@ exports.register = function(socketio, callback) {
 			if (!game.started) {
 				debug("Starting game!");
 				game.start();
-				socket.emit("init-match", game);
+				socket.emit("init-match", game.getSyncPayload());
 			}
 
 			// Update the game instance, which will in turn update the physics.
@@ -139,7 +141,7 @@ exports.register = function(socketio, callback) {
 			//socket.emit('draw', ball_pos, paddles);
 			
 			// Sync the game to prevent cheating.
-			socket.emit('sync', game);
+			socket.emit("sync", game.getSyncPayload());
 
 		}, gameLoopInterval);
 
