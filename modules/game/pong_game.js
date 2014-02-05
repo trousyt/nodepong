@@ -116,7 +116,20 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		}	
 	};
 
-	PongGame.prototype.sync = function(source) {
+	PongGame.prototype.getSyncPayload = function() {
+		var payloadItems = [
+			"board", "paddles", "balls", "scores", "round", "gameId"
+		];
+
+		// Loop through the defined payload items and create 
+		// a new object with matching properties.
+		var payload = {};
+		var that = this;
+		payloadItems.forEach(function(x) { payload[x] = that[x]; });
+		return payload;
+	};
+
+	PongGame.prototype.sync = function(payload) {
 		var parent = "";
 		var that = this;
 		var sync = function(source, target, level) {
@@ -125,8 +138,8 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 			for (var prop in source) {
 				if (!source.hasOwnProperty(prop)) continue;
 
-				// Make note of the parent so we can create the proper object
-				// when necessary.
+				// Make note of the parent so we can create the 
+				// proper object when necessary.
 				if (level === 0) parent = prop;
 				if (typeof source[prop] === "object") {
 					console.log("Syncing object: " + prop);
@@ -140,7 +153,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 			} // /for
 		}; // /sync
 
-		sync(source, this);
+		sync(payload, that);
 	};
 
 	PongGame.prototype.update = function() {
