@@ -1,5 +1,7 @@
-/* 
- * pong_game.js
+/**
+ * Module that provides logic and construction for the PongGame class.
+
+ * @module pong_game
  * board: {width, height, padding}
  * paddles[idx] = {x, y, height, width, offset}
  * ball = {x, y, angle, dx, dy, da}
@@ -16,6 +18,14 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		pointsInRound: 10
 	};
 
+	/**
+	 * Container class for the game logic, physics, and all assets.
+	 *
+	 * @class PongGame
+	 * @constructor
+	 * @param {Object} board The board to use for this game instance.
+	 * @param {Object} [opts] The options to use for this game instance.
+	 */
 	function PongGame(board, opts) {
 		this.board = board;			// The board instance
 		this.paddles = [];			// Paddle array (max size 2)
@@ -36,14 +46,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 				}
 			}	
 		}
-	}
-
-	// Private functions
-	var getPlayerIdx = function(game) {
-		return game.isFull() ? -1 :
-			game.paddles.length === 0 ? 0 :
-			game.paddles[0] ? 1 : 0;
-	};
+	}	// /PongGame
 
 	var createAsset = function(name) {
 		var creators = {
@@ -51,12 +54,13 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 			"balls": options.ballInit
 		};
 
-		// Handle error case.
+		// Handle error case where the type isn't known.
 		if (typeof creators[name] === "undefined") {
 			return {};
 		}
 
-		return creators[name]();
+		var asset = creators[name]();
+		return asset;
 	};
 
 	PongGame.prototype.setPaddleInitializer = function(fn) {
@@ -67,8 +71,20 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		options.ballInit = fn;
 	}
 
+	/**
+	 * Gets the next available player index.
+	 *
+	 * @method getNextPlayerIdx
+	 * @return {Number} Returns the next available index or -1 if the game is full.
+	 */
+	var getNextPlayerIdx = function(game) {
+		return game.isFull() ? -1 :
+			game.paddles.length === 0 ? 0 :
+			game.paddles[0] ? 1 : 0;
+	};
+
 	PongGame.prototype.addPlayer = function(socket) {
-		var playerIdx = getPlayerIdx(this);
+		var playerIdx = getNextPlayerIdx(this);
 		if (playerIdx < 0) return -1;
 		this.addPaddle(playerIdx);
 		return playerIdx;
@@ -87,10 +103,18 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		this.balls.push(ball);
 	};
 
+	/*
+	 * (private) initPaddlePosition
+	 */
+	var initPaddlePosition = function(game, idx, paddle) {
+		paddle.x = idx === 0 ?
+			game.board.padding :
+			game.board.width - (paddle.width + game.board.padding);
+		return paddle;
+	}
+
 	PongGame.prototype.addPaddle = function(idx, paddle) {
 		paddle = paddle || options.paddleInit();
-		if (idx === 0) paddle.x = this.board.padding;
-		else paddle.x = this.board.width - (paddle.width + this.board.padding);
 
 		if (!paddle) {
 			throw {
@@ -99,6 +123,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 			}
 		}
 
+		initPaddlePosition(this, idx, paddle);
 		this.paddles.push(paddle);
 	}
 
@@ -112,13 +137,13 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 
 		this.started = true;
 		if (this.balls.length === 0) {
-			this.balls.push()
+			this.addBall();
 		}	
 	};
 
 	PongGame.prototype.getSyncPayload = function() {
 		var payloadItems = [
-			"board", "paddles", "balls", "scores", "round", "gameId"
+			"board", "paddles", "balls", "scores", "round", "gameId", "started"
 		];
 
 		// Loop through the defined payload items and create 
@@ -142,13 +167,13 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 				// proper object when necessary.
 				if (level === 0) parent = prop;
 				if (typeof source[prop] === "object") {
-					console.log("Syncing object: " + prop);
+					//console.log("Syncing object: " + prop);
 					target[prop] = target[prop] || createAsset(parent);
 					sync(source[prop], target[prop], level + 1);
 					continue;
 				}
 
-				console.log("Syncing property: '" + prop + "' with value '" + source[prop] + "'");;
+				//console.log("Syncing property: '" + prop + "' with value '" + source[prop] + "'");;
 				target[prop] = source[prop];
 			} // /for
 		}; // /sync
@@ -183,7 +208,6 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		//console.log(this.paddles);
 		if (this.paddles.length > 0) {
 			for (var idx in this.paddles) {
-				//console.log("Attempting to render paddle " + idx);
 				this.paddles[idx].render(ctx);
 			}
 		}

@@ -8,7 +8,7 @@ $(document).ready(function() {
 
 		var gameCtx = {
 			settings: {	
-				gameLoopInterval: 10
+				gameLoopInterval: 50  // .05s
 			}
 		};
 
@@ -20,20 +20,20 @@ $(document).ready(function() {
 		// ==========================
 		// START
 		// --------------------------
-		var syncGame = function(game) {
-			gameCtx.game.sync(game);
+		var syncGame = function(payload) {
+			gameCtx.game.sync(payload);
 			console.log("Finished syncing game");
 		};
 
 		// Start after initialized.
 		var afterInit = function() {
-			var opIdx = gameCtx.playerIdx !== 0 ? 1 : 0;
+			var opIdx = gameCtx.playerIdx === 0 ? 1 : 0;
 			var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
 				opPaddle = gameCtx.game.paddles[opIdx];
 
 			/*
 			 * SocketIO Event: `alert`
-			 * Receive display events.
+			 * Receive alerts to be displayed.
 			 */
 			socket.on("alert", function(alert) {
 				$alert.show(1000);
@@ -42,23 +42,20 @@ $(document).ready(function() {
 
 			/* 
 			 * SocketIO Event: `update-opponent`
-			 * Update location of opponents paddle.
+			 * Update location of opponent's paddle.
 			 */
 			socket.on("update-opponent", function(y) {
-				var opponentIdx = !playerIdx;
-
-				gameCtx.game.paddles[gameCtx.opponentIdx].y = y;
+				console.log("opponent's paddle-y changed: " + y);
+				gameCtx.game.paddles[opIdx].y = y;
 			});
 
 			/* 
 			 * SocketIO Event: `sync`
-			 * Syncs the server game instance with the client.
+			 * Syncs the server game payload with the client.
 			 */
-			socket.on("sync", function(game) {
-				syncGame(game);
+			socket.on("sync", function(payload) {
+				syncGame(payload);
 			});
-
-
 
 			// Run the game loop.
 			var ctx = canvas.getContext("2d");
@@ -88,7 +85,8 @@ $(document).ready(function() {
 				socket.emit("update-paddley", constrY);
 
 				// TODO: Update the paddle pos on the game instance.
-				gameCtx.game.paddles[gameCtx.playerIdx].y = constrY;
+				myPaddle.y = constrY;
+				//gameCtx.game.paddles[gameCtx.playerIdx].y = constrY;
 			});
 		};
 
@@ -97,7 +95,8 @@ $(document).ready(function() {
 		 * Initializes a new match.
 		 */
 		 socket.on("init-match", function(init) {
-		 	// TODO
+		 	console.log("rece")
+		 	syncGame(init);
 		 });
 
 		/*
@@ -112,7 +111,6 @@ $(document).ready(function() {
 			canvas.height = init.game.board.height;
 
 			// Create the game instance and immediately sync it.
-			gameCtx.settings.gameLoopInterval = init.gameLoopInterval;
 			gameCtx.playerIdx = init.playerIdx;
 			gameCtx.game = gameModule.create();
 			syncGame(init.game);

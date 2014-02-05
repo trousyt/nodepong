@@ -17,7 +17,7 @@
 var gameModule = requirejs("./pong_game");
 
 // Server vars.
-var gameLoopInterval = 100;		// .1s
+var gameLoopInterval = 1000;	// .1s
 var gameSyncInterval = 20000;	// 25s
 var games = [];
 
@@ -25,7 +25,8 @@ var games = [];
 var res = {
 	CONFIGURATION_ERROR:"A configuration error occurred.",
 	WAITING_FOR_PLAYER: "Waiting for another player...",
-	WAITING_FOR_TURN: 	"Waiting for turn..."
+	WAITING_FOR_TURN: "Game full. Waiting for turn...",
+	GAME_STARTING: "Game starting! Get ready..."
 };
 
 // Screen dimensions.
@@ -47,14 +48,15 @@ exports.register = function(socketio, callback) {
 		return game;
 	};
 
-	var findOpenGame = function() {
-		for (var i=0; i < games.length; i++) {
-			var game = games[i];
-			if (!game.isFull()) {
-				return game;
+	var findOpenGame = function(callback) {
+		if (games.length === 0) {
+			games[0] = createGameInstance();
+		} else {
+			if (games[0].isFull()) {
+				return null;
 			}
 		}
-		return createGameInstance();
+		return games[0];
 	};
 
 	/*
@@ -67,7 +69,7 @@ exports.register = function(socketio, callback) {
 		var debug = function(message) {
 			if (socket) {
 				console.log(socket.id + " " + message);
-			}		
+			}
 		};
 		var lastMessageSent;
 		var sendMessage = function(msg) {
@@ -83,10 +85,14 @@ exports.register = function(socketio, callback) {
 		/*
 		 * Game Setup
 		 */
-
 		// Find an open game (or create new) 
 		// and add the player to the game.
 		var game = findOpenGame();
+		if (game === null) {
+			sendMessage(res.WAITING_FOR_TURN);
+			return;
+		}
+
 		var playerIdx = game.addPlayer(socket);
 		var playerNumber = playerIdx + 1;
 		debug("Added player " + playerNumber + " to game instance " + game.gameId);
@@ -113,12 +119,11 @@ exports.register = function(socketio, callback) {
 			debug("Player set paddle-y: " + y);
 			game.paddles[playerIdx].y = y;	
 
-			var opponentSocket = game.sockets[!playerIdx];
-			
+			// Immediately send this paddle y-pos to the opponent.
+			var opponentPlayerIdx = playerIdx === 0 ? 1 : 0;
+			var opponentSocket = game.sockets[opponentPlayerIdx];
 			if (opponentSocket){
-					opponentSocket.emit("update-opponent", {
-					y : y
-				});	
+				opponentSocket.emit("update-opponent", y);	
 			}
 			
 		});
@@ -138,23 +143,30 @@ exports.register = function(socketio, callback) {
 			// When we start, sync the client again.
 			if (!game.started) {
 				debug("Starting game!");
+				sendMessage(res.GAME_STARTING);
 				game.start();
 				socket.emit("init-match", game.getSyncPayload());
 			}
 
-			// Update the game instance, which will in turn update the physics.
+			// Update the game, which will in turn update the physics.
 			game.update();
-			
-			// TODO: Replace 'draw' event with 'sync' event.
-			// This can run on a much slower interval.
-			//socket.emit('draw', ball_pos, paddles);
-			
-			// Sync the game to prevent cheating.
-			socket.emit("sync", game.getSyncPayload());
 
 		}, gameLoopInterval);
 
-	});
+		/*
+		 * Sync Loop
+		 */ 
+		 setInterval(function() {
+		 	if (!game.started) return;
+			socket.emit("sync", game.getSyncPayload());
+		 }, gameSyncInterval);
+
+
+		 socket.on("disconnect", function() {
+			// TODO: Complete disconnect logic.
+		});
+
+	}); // /Connection Event
 
 	callback();
 };
