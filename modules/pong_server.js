@@ -36,6 +36,10 @@ var board = {
 	padding: 10
 }
 
+var debug = function(message) {
+	console.log(message);
+};
+
 /**
  * Registers socketio with the pong server and starts the game loop.
  * @param {object} socketio - The socket.io server instance.
@@ -60,28 +64,26 @@ exports.register = function(socketio, callback) {
 		return games[0];
 	};
 
+	var lastMessageSent;
+	var sendMessage = function(socket, msg, broadcast) {
+		if (msg !== lastMessageSent) {
+			// Notify the user that they must wait...
+			lastMessageSent = msg;
+			if (broadcast) socket.broadcast.emit("alert", msg);
+			else socket.emit("alert", msg);	
+		}
+	};
+
+	var socketDebug = function(socket, msg) {
+		debug(socket.id + " " + msg);
+	}
+
 	/*
 	 * SocketIO Event: `Connection`
-	 * Initialize socket and game.
+	 * Handles connection to the main channel.
 	 */
 	socketio.sockets.on("connection", function(socket) {
-
-		// Define socket-specific functions.
-		var debug = function(message) {
-			if (socket) {
-				console.log(socket.id + " " + message);
-			}
-		};
-		var lastMessageSent;
-		var sendMessage = function(msg) {
-			if (msg !== lastMessageSent) {
-				// Notify the user that they must wait...
-				lastMessageSent = msg;
-				socket.emit("alert", msg);;
-			}
-		};
-
-		debug("A new connection was made");
+		socketDebug(socket, "A new connection was made");
 
 		/*
 		 * Game Setup
@@ -95,82 +97,96 @@ exports.register = function(socketio, callback) {
 		// If no game could be joined, just return.
 		// TODO: Add the player to a queue.
 		if (game === null) {
-			sendMessage(res.WAITING_FOR_TURN);
+			sendMessage(socket, res.WAITING_FOR_TURN);
 			return;
 		}
 
-		var playerIdx = game.addPlayer(socket);
-		var playerNumber = playerIdx + 1;
-		debug("Added player " + playerNumber + " to game instance " + game.gameId);
-
-		// Store the socket on game with the player index.
-		// By placing this code here, PongGame doesn't have
-		// to know anything about sockets.
-		game.sockets[playerIdx] = socket;
+		// We found a new game, so direct the client
+		// to connect to the new game channel.
+		var gameChannel = "/game-" + game.gameId;
+		socket.emit("game-redirect", gameChannel);
 
 		/*
-		 * Initialization
+		 * SocketIO Event: `Connection`
+		 * Handles connection to the game channel.
 		 */
-		// Send game init.
-		debug("Initializing client");
-		socket.emit("init-conn", { 
-			gameLoopInterval: gameLoopInterval,
-			playerIdx: playerIdx,
-			game: game.getSyncPayload()
-		});
+		socketio.of(gameChannel).on("connection", function(socket) {
+			socketDebug(socket, "Joined '" + gameChannel + "'");
 
-		// Receive paddle updates from client.
-		socket.on("update-paddley", function(y){
-			debug("Player set paddle-y: " + y);
-			game.paddles[playerIdx].y = y;	
+			// Add the player to the game.
+			var playerIdx = game.addPlayer(socket);
+			var playerNumber = playerIdx + 1;
+			socketDebug(socket, "Added player " + playerNumber + " to game instance " + game.gameId);
 
-			// Immediately send this paddle y-pos to the opponent.
-			var opponentPlayerIdx = 1 - playerIdx;
-			var opponentSocket = game.sockets[opponentPlayerIdx];
-			if (opponentSocket){
-				opponentSocket.emit("update-opponent", y);	
-			}
-			
-		});
+			// Store the socket on game with the player index.
+			// By placing this code here, PongGame doesn't have
+			// to know anything about sockets.
+			game.sockets[playerIdx] = socket;
 
-		/*
-		 * Game Loop
-		 */
-		setInterval(function(){
+			/*
+			 * Initialization
+			 */
+			// Send game init.
+			socketDebug(socket, "Initializing client");
+			socket.emit("game-init", {
+				gameLoopInterval: gameLoopInterval,
+				playerIdx: playerIdx,
+				game: game.getSyncPayload()
+			});
 
-			// Verify the game meets all sufficient conditions to start
-			if (!game.isFull()) {
-				sendMessage(res.WAITING_FOR_PLAYER);
-				return;
-			}
+			// Receive paddle updates from client.
+			socket.on("paddle-updatey", function(y){
+				socketDebug(socket, "Player set paddle-y: " + y);
+				game.paddles[playerIdx].y = y;
 
-			// If we get here, the game is full and we can start.
-			// When we start, sync the client again.
-			if (!game.started) {
-				debug("Starting game!");
-				sendMessage(res.GAME_STARTING);
-				game.start();
-				socket.emit("init-match", game.getSyncPayload());
-			}
+				// Immediately send this paddle y-pos to the opponent.
+				var opponentPlayerIdx = playerIdx === 0 ? 1 : 0;
+				var opponentSocket = game.sockets[opponentPlayerIdx];
+				if (opponentSocket){
+					opponentSocket.emit("paddle-updateoppy", y);	
+				}
+			});
 
-			// Update the game, which will in turn update the physics.
-			game.update();
+			/*
+			 * Game Loop
+			 */
+			setInterval(function(){
 
-		}, gameLoopInterval);
+				// Verify the game meets all sufficient conditions to start
+				if (!game.isFull()) {
+					sendMessage(socket, res.WAITING_FOR_PLAYER);
+					return;
+				}
 
-		/*
-		 * Sync Loop
-		 */ 
-		 setInterval(function() {
-		 	if (!game.started) return;
-			socket.emit("sync", game.getSyncPayload());
-		 }, gameSyncInterval);
+				// If we get here, the game is full and we can start.
+				// When we start, sync the client again.
+				if (!game.started) {
+					socketDebug(socket, "Starting game!");
+					sendMessage(socket, res.GAME_STARTING, true);
+					game.start();
+					socket.broadcast.emit("match-init", game.getSyncPayload());
+				}
+
+				// Update the game, which will in turn update the physics.
+				game.update();
+
+			}, gameLoopInterval);
+
+			/*
+			 * Sync Loop
+			 */ 
+			setInterval(function() {
+				if (!game.started) return;
+				socket.broadcast.emit("game-sync", game.getSyncPayload());
+			}, gameSyncInterval);
 
 
-		 socket.on("disconnect", function() {
-			// TODO: Complete disconnect logic.
-		});
+			socket.on("disconnect", function() {
+				socketDebug(socket, "Player disconnected");
+				// TODO: Complete disconnect logic.
+			});
 
+		}); // /Game Channel
 	}); // /Connection Event
 
 	callback();

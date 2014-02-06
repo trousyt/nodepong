@@ -11,7 +11,7 @@ define(function() {
 		// Noop
 	}
 
-	 PongPhysics.prototype.update = function(game, scoreCallback) {
+	PongPhysics.prototype.update = function(game, scoreCallback) {
 		var board = game.board;
 		var paddles = game.paddles;
 		var balls = game.balls;
