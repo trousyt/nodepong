@@ -64,9 +64,8 @@ exports.register = function(socketio, callback) {
 		return games[0];
 	};
 
-	var sendMessage = function(socket, msg, broadcast) {
-		if (broadcast) socket.broadcast.emit("alert", msg);
-		else socket.emit("alert", msg);	
+	var sendMessage = function(socket, msg) {
+		socket.emit("alert", msg);
 	};
 
 	var socketDebug = function(socket, msg) {
@@ -98,14 +97,14 @@ exports.register = function(socketio, callback) {
 
 		// We found a new game, so direct the client
 		// to connect to the new game channel.
-		var gameChannel = "/game-" + game.gameId;
-		socket.emit("game-redirect", gameChannel);
+		var gameChannelName = "/game-" + game.gameId;
+		socket.emit("game-redirect", gameChannelName);
 
 		/*
 		 * SocketIO Event: `Connection`
 		 * Handles connection to the game channel.
 		 */
-		socketio.of(gameChannel).on("connection", function(socket) {
+		var gameChannel = socketio.of(gameChannelName).on("connection", function(socket) {
 			socketDebug(socket, "Joined '" + gameChannel + "'");
 
 			// Add the player to the game.
@@ -159,9 +158,9 @@ exports.register = function(socketio, callback) {
 				// When we start, sync the client again.
 				if (!game.started) {
 					socketDebug(socket, "Starting game!");
-					sendMessage(socket, res.GAME_STARTING, true);
+					sendMessage(gameChannel, res.GAME_STARTING, true);
 					game.start();
-					socket.broadcast.emit("match-init", game.getSyncPayload());
+					gameChannel.emit("match-init", game.getSyncPayload());
 				}
 
 				// Update the game, which will in turn update the physics.
@@ -174,7 +173,7 @@ exports.register = function(socketio, callback) {
 			 */ 
 			setInterval(function() {
 				if (!game.started) return;
-				socket.broadcast.emit("game-sync", game.getSyncPayload());
+				gameChannel.emit("game-sync", game.getSyncPayload());
 			}, gameSyncInterval);
 
 

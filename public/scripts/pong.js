@@ -106,6 +106,7 @@ $(document).ready(function() {
 			 * Initializes a new match.
 			 */
 			 socket.on("match-init", function(init) {
+			 	debug("Received match init");
 			 	gameCtx.game.start();
 			 	syncGame(init);
 			 });

@@ -23,8 +23,8 @@ define(function() {
 			ball.x = ball.x + Math.cos(ball.angle) * ball.speed;
 			ball.y = ball.y + Math.sin(ball.angle) * ball.speed;
 
-			console.log("ball_x: " + ball.x);
-			console.log("ball_y: " + ball.y);
+			//console.log("ball_x: " + ball.x);
+			//console.log("ball_y: " + ball.y);
 			//console.log("board padding: " + board.padding);
 			
 			// The ball hit a side-wall.
