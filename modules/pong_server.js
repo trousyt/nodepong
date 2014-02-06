@@ -51,6 +51,7 @@ exports.register = function(socketio, callback) {
 	var findOpenGame = function(callback) {
 		if (games.length === 0) {
 			games[0] = createGameInstance();
+			callback(games[0]);
 		} else {
 			if (games[0].isFull()) {
 				return null;
@@ -87,7 +88,12 @@ exports.register = function(socketio, callback) {
 		 */
 		// Find an open game (or create new) 
 		// and add the player to the game.
-		var game = findOpenGame();
+		var game = findOpenGame(function(newGame) {
+			newGame.sockets = [];
+		});
+
+		// If no game could be joined, just return.
+		// TODO: Add the player to a queue.
 		if (game === null) {
 			sendMessage(res.WAITING_FOR_TURN);
 			return;
@@ -100,7 +106,6 @@ exports.register = function(socketio, callback) {
 		// Store the socket on game with the player index.
 		// By placing this code here, PongGame doesn't have
 		// to know anything about sockets.
-		game.sockets = [];
 		game.sockets[playerIdx] = socket;
 
 		/*
