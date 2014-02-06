@@ -64,14 +64,9 @@ exports.register = function(socketio, callback) {
 		return games[0];
 	};
 
-	var lastMessageSent;
 	var sendMessage = function(socket, msg, broadcast) {
-		if (msg !== lastMessageSent) {
-			// Notify the user that they must wait...
-			lastMessageSent = msg;
-			if (broadcast) socket.broadcast.emit("alert", msg);
-			else socket.emit("alert", msg);	
-		}
+		if (broadcast) socket.broadcast.emit("alert", msg);
+		else socket.emit("alert", msg);	
 	};
 
 	var socketDebug = function(socket, msg) {
@@ -115,6 +110,8 @@ exports.register = function(socketio, callback) {
 
 			// Add the player to the game.
 			var playerIdx = game.addPlayer(socket);
+			if (playerIdx === -1) return;
+
 			var playerNumber = playerIdx + 1;
 			socketDebug(socket, "Added player " + playerNumber + " to game instance " + game.gameId);
 

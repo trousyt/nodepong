@@ -79,8 +79,9 @@ $(document).ready(function() {
 				// Send paddle position.
 				$(document).mousemove(function(e) {
 					// Get the relative y-pos to the board.
+					var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx];
 					var relativeY = e.pageY - $canvas.offset().top;
-					var paddleMaxY = canvas.height - gameCtx.game.paddles[gameCtx.playerIdx].height;
+					var paddleMaxY = canvas.height - myPaddle.height;
 					
 					//debug("offset: " + $canvas.offset().top);
 					//debug("relative: " + relativeY);
@@ -95,7 +96,7 @@ $(document).ready(function() {
 					socket.emit("paddle-updatey", constrY);
 
 					// Update the paddle pos on the game instance.
-					var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx];
+					
 					myPaddle.y = constrY;
 				});
 			};
