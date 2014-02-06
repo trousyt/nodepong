@@ -15,22 +15,22 @@
 
 	 options.ballDefaults = {
 		size: 10,
-		x: 0,
-		y: 0,
+		x: 50,
+		y: 50,
 		angle: 0,
 		dx: 10,
 		dy: 10,
-		da: 10
+		speed: 10
 	};
 
-	function Ball(size, x, y, angle, dx, dy, da) {
+	function Ball(size, x, y, angle, dx, dy, speed) {
 		this.size = size || 10;
 		this.x = x || 0;
 		this.y = y || 0;
 		this.angle = angle || 0;
 		this.dx = dx || 0;
 		this.dy = dy || 0;
-		this.da = da || 0;
+		this.speed = speed || 0;
 
 		// this.move = function(newx, newy, newangle, newdx, newdy, newda) {
 		// 	var x = newx || this.x;
@@ -50,11 +50,8 @@
 		var y = this.y;
 
 		ctx.save();
-		ctx.beginPath();
-		ctx.arc(x, y, size / 2, 0, 2 * Math.PI, false);
-		ctx.fillStyle = "black";
-		ctx.fill();
-		ctx.stroke();
+		ctx.fillStyle = "white";
+		ctx.fillRect(this.x, this.y, this.size, this.size);
 		ctx.restore();
 	};
 
@@ -63,8 +60,8 @@
 	 */
 
 	 options.paddleDefaults = {
-		x: 0,	
-		y: 0,
+		x: 10,	
+		y: 10,
 		width: 20,
 		height: 80
 	};
@@ -102,11 +99,11 @@
 
 	return (function() {
 		var ball = {
-			create: function(x, y, angle, dx, dy, da) {
-				return new Ball(x, y, angle, dx, dy, da);
+			create: function(size, x, y, angle, dx, dy, speed) {
+				return new Ball(size, x, y, angle, dx, dy, speed);
 			},
 			createFromExisting: function(tmpl) {
-				return ball.create(tmpl.x, tmpl.y, tmpl.angle, tmpl.dx, tmpl.dy, tmpl.da);
+				return ball.create(tmpl.size, tmpl.x, tmpl.y, tmpl.angle, tmpl.dx, tmpl.dy, tmpl.speed);
 			},
 			createDefault: function() {
 				return ball.createFromExisting(options.ballDefaults);

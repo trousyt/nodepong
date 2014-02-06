@@ -294,7 +294,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		//console.log(this.balls);
 		if (this.balls.length > 0) {
 			for (var ball in this.balls) {
-				ball.render(ctx);
+				this.balls[ball].render(ctx);
 			}
 		}
 	};

@@ -16,10 +16,16 @@ define(function() {
 		var paddles = game.paddles;
 		var balls = game.balls;
 
-		for (var ball in balls) {
+		for (var idx in balls) {
 
-			ball.x = ball.x + Math.cos(ball.angle) * ball.da;
-			ball.y = ball.y + Math.sin(ball.angle) * ball.da;
+			var ball = balls[idx];
+
+			ball.x = ball.x + Math.cos(ball.angle) * ball.speed;
+			ball.y = ball.y + Math.sin(ball.angle) * ball.speed;
+
+			console.log("ball_x: " + ball.x);
+			console.log("ball_y: " + ball.y);
+			//console.log("board padding: " + board.padding);
 			
 			// The ball hit a side-wall.
 			// A score happened!
@@ -38,10 +44,10 @@ define(function() {
 
 			// The ball hit a paddle.
 			// Todo: I need to get the width (offset) between the paddle and the board (in CSS, the padding)
-			var paddle_offset = 10;
+			var paddle_offset = board.padding;
 
 			//console.log("ball-y: " + this.y + ", paddle-y: " + paddles[0])
-			if ((ball.x <= (board.padding + paddles.offset + paddles.width) && 
+			if ((ball.x <= (paddles.offset + paddles.width) && 
 				ball.x >= paddles.offset &&
 				ball.y >= paddles[0] &&
 				ball.y <= paddles[0] + paddles.height) ||	
@@ -56,12 +62,17 @@ define(function() {
 			if (ball.y <= 0) {
 				ball.y = ball.dx;
 				ball.angle = 0 - ball.angle;
-				console.log("hit y<=0");
-			} else if (ball.y >= board.height) {
+				console.log("hit y <= 0");
+			} else if (ball.y >= board.height - ball.height) {
 				ball.y = board.height - ball.dx;
 				ball.angle = 0 - ball.angle;
-				console.log("hit y>= height");
+				console.log("hit y >= height");
 			}	
+
+			// Convert ball angle to remain positive
+			if (ball.angle < 0){
+				ball.angle = (2 * Math.PI) - ball.angle;
+			}
 		} // /for
 	}; // /update
 
