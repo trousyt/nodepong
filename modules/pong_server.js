@@ -125,7 +125,7 @@ exports.register = function(socketio, callback) {
 			game.paddles[playerIdx].y = y;	
 
 			// Immediately send this paddle y-pos to the opponent.
-			var opponentPlayerIdx = playerIdx === 0 ? 1 : 0;
+			var opponentPlayerIdx = 1 - playerIdx;
 			var opponentSocket = game.sockets[opponentPlayerIdx];
 			if (opponentSocket){
 				opponentSocket.emit("update-opponent", y);	
