@@ -27,7 +27,7 @@ $(document).ready(function() {
 
 		// Start after initialized.
 		var afterInit = function() {
-			var opIdx = gameCtx.playerIdx === 0 ? 1 : 0;
+			var opIdx = 1 - gameCtx.playerIdx;
 			var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
 				opPaddle = gameCtx.game.paddles[opIdx];
 
