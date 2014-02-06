@@ -48,7 +48,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 				}
 			}	
 		}
-	}	// /PongGame
+	};	// /PongGame
 
 	/**
 	 * Creates a new asset of the provided property name.
@@ -91,7 +91,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 	 */
 	PongGame.prototype.setBallInitializer = function(fn) {
 		options.ballInit = fn;
-	}
+	};
 
 	/**
 	 * Gets the next available player index.
@@ -150,7 +150,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 			game.board.padding :
 			game.board.width - (paddle.width + game.board.padding);
 		return paddle;
-	}
+	};
 
 	/** 
 	 * Adds a new paddle insetance to the game.
@@ -171,7 +171,7 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 
 		initPaddlePosition(this, idx, paddle);
 		this.paddles.push(paddle);
-	}
+	};
 
 	/**
 	 * Returns true if the game is full.

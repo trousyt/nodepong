@@ -2,125 +2,135 @@
 
 $(document).ready(function() {
 	var that = this;
+	var debug = function(message) {
+		console.log(message);
+	}
 
 	require(["scripts/game/pong_game"], function(gameModule) {
 		var socket = io.connect();
 
-		var gameCtx = {
-			settings: {	
-				gameLoopInterval: 50  // .05s
-			}
-		};
+		/*
+		 * SocketIO Event: `game-redirect`
+		 * Redirects the client to a game channel.
+		 */
+		socket.on("game-redirect", function(channel) {
+			debug("got game redirect");
+			socket = io.connect(channel);
 
-		// Reference DOM elements.
-		var $alert = $("#alert");
-		var canvas = document.getElementById("game-canvas");
-		var $canvas = $(canvas);
+			var gameCtx = {
+				settings: {	
+					gameLoopInterval: 50  // .05s
+				}
+			};
 
-		// ==========================
-		// START
-		// --------------------------
-		var syncGame = function(payload) {
-			gameCtx.game.sync(payload);
-			console.log("Finished syncing game");
-		};
+			// Reference DOM elements.
+			var $alert = $("#alert");
+			var canvas = document.getElementById("game-canvas");
+			var $canvas = $(canvas);
 
-		// Start after initialized.
-		var afterInit = function() {
-			var opIdx = gameCtx.playerIdx === 0 ? 1 : 0;
-			var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
-				opPaddle = gameCtx.game.paddles[opIdx];
+			// ==========================
+			// START
+			// --------------------------
+			function syncGame(payload) {
+				gameCtx.game.sync(payload);
+				debug("Finished syncing game");
+			};
+
+			// Start after initialized.
+			function afterInit() {
+				gameCtx.oppPlayerIdx = 1 - gameCtx.playerIdx;
+				// var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
+				// 	oppPaddle = gameCtx.game.paddles[oppIdx];
+
+				/*
+				 * SocketIO Event: `alert`
+				 * Receive alerts to be displayed.
+				 */
+				socket.on("alert", function(alert) {
+					$alert.show(1000);
+					$alert.text(alert);
+				});
+
+				/* 
+				 * SocketIO Event: `update-opponent`
+				 * Update location of opponent's paddle.
+				 */
+				socket.on("paddle-updateoppy", function(y) {
+					var oppPaddle = gameCtx.game.paddles[gameCtx.oppPlayerIdx];
+					//debug("opponent's paddle-y changed: " + y);
+					oppPaddle.y = y;
+				});
+
+				/* 
+				 * SocketIO Event: `game-sync`
+				 * Syncs the server game payload with the client.
+				 */
+				socket.on("game-sync", function(payload) {
+					syncGame(payload);
+				});
+
+				// Run the game loop.
+				var ctx = canvas.getContext("2d");
+				setInterval(function() {
+					gameCtx.game.update();
+					gameCtx.game.render(ctx);
+				}, gameCtx.settings.gameLoopInterval);
+
+				// Send paddle position.
+				$(document).mousemove(function(e) {
+					// Get the relative y-pos to the board.
+					var relativeY = e.pageY - $canvas.offset().top;
+					var paddleMaxY = canvas.height - gameCtx.game.paddles[gameCtx.playerIdx].height;
+					
+					//debug("offset: " + $canvas.offset().top);
+					//debug("relative: " + relativeY);
+					//debug("max: " + paddleMaxY);
+					// Get the constrained y-pos.
+					var constrY = relativeY < 0
+						? 0 : relativeY > paddleMaxY 
+							? paddleMaxY : relativeY;
+					//debug("constrained: " + constrY);
+
+					// Update the server.
+					socket.emit("paddle-updatey", constrY);
+
+					// Update the paddle pos on the game instance.
+					var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx];
+					myPaddle.y = constrY;
+				});
+			};
 
 			/*
-			 * SocketIO Event: `alert`
-			 * Receive alerts to be displayed.
+			 * SocketIO Event: `match-init`
+			 * Initializes a new match.
 			 */
-			socket.on("alert", function(alert) {
-				$alert.show(1000);
-				$alert.text(alert);
-			});
+			 socket.on("match-init", function(init) {
+			 	gameCtx.game.start();
+			 	syncGame(init);
+			 });
 
-			/* 
-			 * SocketIO Event: `update-opponent`
-			 * Update location of opponent's paddle.
+			/*
+			 * SocketIO Event: `game-init`
+			 * Initializes the client with settings and game object.
 			 */
-			socket.on("update-opponent", function(y) {
-				console.log("opponent's paddle-y changed: " + y);
-				gameCtx.game.paddles[opIdx].y = y;
-			});
+			socket.on("game-init", function(init) {
+				debug("Received init for player " + init.playerIdx);
 
-			/* 
-			 * SocketIO Event: `sync`
-			 * Syncs the server game payload with the client.
-			 */
-			socket.on("sync", function(payload) {
-				syncGame(payload);
-			});
+				// Update game board CSS settings from init.game.board
+				canvas.width = init.game.board.width;
+				canvas.height = init.game.board.height;
 
-			// Run the game loop.
-			var ctx = canvas.getContext("2d");
-			setInterval(function() {
-				gameCtx.game.update();
-				gameCtx.game.render(ctx);
-			}, gameCtx.settings.gameLoopInterval);
+				// Create the game instance and immediately sync it.
+				gameCtx.playerIdx = init.playerIdx;
+				gameCtx.game = gameModule.create();
+				syncGame(init.game);
 
-			// Send paddle position.
-			$(document).mousemove(function(e) {
-				// Get the relative y-pos to the board.
-				var relativeY = e.pageY - $canvas.offset().top;
-				var paddleMaxY = canvas.height - gameCtx.game.paddles[gameCtx.playerIdx].height;
-				
-				//console.log("offset: " + $canvas.offset().top);
-				//console.log("relative: " + relativeY);
-				//console.log("max: " + paddleMaxY);
-				// Get the constrained y-pos.
-				var constrY = relativeY < 0
-					? 0 : relativeY > paddleMaxY 
-						? paddleMaxY : relativeY;
+				// Invoke after-init code.
+				afterInit();
 
-				
-				// console.log("constrained: " + constrY);
+			});	// /game-init
 
-				// Update the server.
-				socket.emit("update-paddley", constrY);
-
-				// TODO: Update the paddle pos on the game instance.
-				myPaddle.y = constrY;
-				//gameCtx.game.paddles[gameCtx.playerIdx].y = constrY;
-			});
-		};
-
-		/*
-		 * SocketIO Event: `init-match`
-		 * Initializes a new match.
-		 */
-		 socket.on("init-match", function(init) {
-		 	console.log("rece")
-		 	gameCtx.game.start();
-		 	syncGame(init);
-		 });
-
-		/*
-		 * SocketIO Event: `init`
-		 * Initializes the client with settings and game object.
-		 */
-		socket.on("init-conn", function(init) {
-			console.log("Received init for player " + init.playerIdx);
-
-			// Update game board CSS settings from init.game.board
-			canvas.width = init.game.board.width;
-			canvas.height = init.game.board.height;
-
-			// Create the game instance and immediately sync it.
-			gameCtx.playerIdx = init.playerIdx;
-			gameCtx.game = gameModule.create();
-			syncGame(init.game);
-
-			// Invoke after-init code.
-			afterInit();
-		});
-
-		
+		}); // /game-redirect
 
 	}); // /require
 
