@@ -91,11 +91,12 @@ $(document).ready(function() {
 		};
 
 		/*
-		 * SocketIO Evnet: `init-match`
+		 * SocketIO Event: `init-match`
 		 * Initializes a new match.
 		 */
 		 socket.on("init-match", function(init) {
 		 	console.log("rece")
+		 	gameCtx.game.start();
 		 	syncGame(init);
 		 });
 
