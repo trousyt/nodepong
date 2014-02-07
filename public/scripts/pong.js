@@ -14,7 +14,7 @@ $(document).ready(function() {
 		 * Redirects the client to a game channel.
 		 */
 		socket.on("game-redirect", function(channel) {
-			debug("got game redirect");
+			debug("Received game redirect to " + channel);
 			socket = io.connect(channel);
 
 			var gameCtx = {
@@ -38,7 +38,6 @@ $(document).ready(function() {
 			// Runs game logic after the game is initialized.
 			// --
 			function afterInit() {
-				gameCtx.oppPlayerIdx = 1 - gameCtx.playerIdx;
 				// var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
 				// 	oppPaddle = gameCtx.game.paddles[oppIdx];
 
@@ -52,21 +51,23 @@ $(document).ready(function() {
 				});
 
 				/* 
-				 * SocketIO Event: `update-opponent`
-				 * Update location of opponent's paddle.
-				 */
-				socket.on("paddle-updateoppy", function(y) {
-					var oppPaddle = gameCtx.game.paddles[gameCtx.oppPlayerIdx];
-					//debug("opponent's paddle-y changed: " + y);
-					oppPaddle.y = y;
-				});
-
-				/* 
 				 * SocketIO Event: `game-sync`
 				 * Syncs the server game payload with the client.
 				 */
 				socket.on("game-sync", function(payload) {
 					syncGame(payload);
+				});
+
+				/* 
+				 * SocketIO Event: `update-opponent`
+				 * Update location of opponent's paddle.
+				 */
+				socket.on("paddle-updateoppy", function(y) {
+					//debug("opponent's paddle-y changed: " + y);
+					var oppPaddle = gameCtx.game.paddles[gameCtx.oppPlayerIdx];					
+					if ( oppPaddle ) {
+						oppPaddle.y = y;
+					}
 				});
 
 				// Run the game loop.
@@ -76,27 +77,25 @@ $(document).ready(function() {
 					gameCtx.game.render(ctx);
 				}, gameCtx.settings.gameLoopInterval);
 
-				// Send paddle position.
-				$(document).mousemove(function(e) {
+				// Capture mouse movement and update 
+				// the game server.
+				$canvas.mousemove(function(e) {
+
 					// Get the relative y-pos to the board.
 					var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx];
-					var relativeY = e.pageY - $canvas.offset().top;
-					var paddleMaxY = canvas.height - myPaddle.height;
+					var mouseY = e.pageY - (myPaddle.height / 2),
+						relativeY = mouseY - $canvas.offset().top,
+						maxY = canvas.height - myPaddle.height;
 					
-					//debug("offset: " + $canvas.offset().top);
-					//debug("relative: " + relativeY);
-					//debug("max: " + paddleMaxY);
 					// Get the constrained y-pos.
 					var constrY = relativeY < 0
-						? 0 : relativeY > paddleMaxY 
-							? paddleMaxY : relativeY;
-					//debug("constrained: " + constrY);
+						? 0 : relativeY > maxY 
+							? maxY : relativeY;
 
 					// Update the server.
 					socket.emit("paddle-updatey", constrY);
 
 					// Update the paddle pos on the game instance.
-					
 					myPaddle.y = constrY;
 				});
 			};
@@ -118,12 +117,13 @@ $(document).ready(function() {
 			socket.on("game-init", function(init) {
 				debug("Received init for player " + init.playerIdx);
 
-				// Update game board CSS settings from init.game.board
+				// Update game board CSS settings.
 				canvas.width = init.game.board.width;
 				canvas.height = init.game.board.height;
 
 				// Create the game instance and immediately sync it.
 				gameCtx.playerIdx = init.playerIdx;
+				gameCtx.oppPlayerIdx = 1 - init.playerIdx;
 				gameCtx.game = gameModule.create();
 				syncGame(init.game);
 
@@ -131,9 +131,7 @@ $(document).ready(function() {
 				afterInit();
 
 			});	// /game-init
-
 		}); // /game-redirect
-
 	}); // /require
 
 });
