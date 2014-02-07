@@ -28,15 +28,15 @@ $(document).ready(function() {
 			var canvas = document.getElementById("game-canvas");
 			var $canvas = $(canvas);
 
-			// ==========================
-			// START
-			// --------------------------
+			//---------------------------------
+
 			function syncGame(payload) {
 				gameCtx.game.sync(payload);
 				debug("Finished syncing game");
 			};
 
-			// Start after initialized.
+			// Runs game logic after the game is initialized.
+			// --
 			function afterInit() {
 				gameCtx.oppPlayerIdx = 1 - gameCtx.playerIdx;
 				// var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],

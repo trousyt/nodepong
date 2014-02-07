@@ -1,12 +1,12 @@
+"use strict";
+
 /*
- * pong_server.js
- * Contains the main game loop and socket event handlers/emitters.
- * 
- * TO-DO:
- * The server shouldn't care about screen size on the client; take out all code for this
+ * Contains the main game loop, socket event connection
+ * logic, and event handlers and emitters.
+ *
+ * @module pong_server
  * 
  */
-"use strict";
 
  var requirejs = require("requirejs");
  requirejs.config({
@@ -40,22 +40,39 @@ var debug = function(message) {
 	console.log(message);
 };
 
+
 /**
- * Registers socketio with the pong server and starts the game loop.
- * @param {object} socketio - The socket.io server instance.
+ * Registers the pong game socket logic with the provided SocketIO instance.
+ *
+ * @method register
+ * @param {Object} socketio The SocketIO instance to register with.
+ * @param {Function} callback The function invoked when the game is registered.
  */
 exports.register = function(socketio, callback) {
 
+	/**
+	 * Creates a new game instance and pushes it onto the games array.
+	 *
+	 * @method createGameInstance
+	 * @return {Object} A new PongGame instance.
+	 */
 	var createGameInstance = function() {
 		var game = gameModule.create(board);
 		games.push(game);
 		return game;
 	};
 
-	var findOpenGame = function(callback) {
+	/**
+	 * Finds an open game if one is available.
+	 *
+	 * @method findOpenGame
+	 * @param {Function} callback Callback that is invoked when a new instance is created.
+	 * @return {Object} An open game instance.
+	 */
+	var findOpenGame = function(initCallback) {
 		if (games.length === 0) {
 			games[0] = createGameInstance();
-			callback(games[0]);
+			initCallback(games[0]);
 		} else {
 			if (games[0].isFull()) {
 				return null;
@@ -64,10 +81,24 @@ exports.register = function(socketio, callback) {
 		return games[0];
 	};
 
+	/**
+	 * Sends a message to all connections on the provided socket.
+	 *
+	 * @method sendMessage
+	 * @param {Object} socket The socket instance to emit the message on.
+	 * @param {String} msg The message to emit.
+	 */
 	var sendMessage = function(socket, msg) {
 		socket.emit("alert", msg);
 	};
 
+	/**
+	 * Writes a debug message prefixed with the socket identifier.
+	 *
+	 * @method socketDebug
+	 * @param {Object} socket The socket instance to emit the message on.
+	 * @param {String} msg The message to write.
+	 */
 	var socketDebug = function(socket, msg) {
 		debug(socket.id + " " + msg);
 	}
@@ -105,7 +136,7 @@ exports.register = function(socketio, callback) {
 		 * Handles connection to the game channel.
 		 */
 		var gameChannel = socketio.of(gameChannelName).on("connection", function(socket) {
-			socketDebug(socket, "Joined '" + gameChannel + "'");
+			socketDebug(socket, "Joined '" + gameChannelName + "'");
 
 			// Add the player to the game.
 			var playerIdx = game.addPlayer(socket);
@@ -183,7 +214,9 @@ exports.register = function(socketio, callback) {
 			});
 
 		}); // /Game Channel
+
 	}); // /Connection Event
 
 	callback();
-};
+
+}; // /register

@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Module that provides logic and construction for the PongGame class.
  *	board: {width, height, padding}
@@ -7,12 +9,11 @@
  * @module pong_game
  * @requires pong_physics, pong_assets
  */
-"use strict";
 
 // "Global" game counter.
 var nextGameId = 0;
 
-define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule) {
+define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModule, ballModule, paddleModule) {
 	var physics = physicsModule.create();
 
 	// Private instance vars.
@@ -37,8 +38,8 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 		this.gameId = nextGameId++;	// Unique game identifier
 		this.started = false;
 
-		options.paddleInit = assetsModule.paddle.createDefault;
-		options.ballInit = assetsModule.ball.createDefault;
+		options.paddleInit = paddleModule.createDefault;
+		options.ballInit = ballModule.createDefault;
 		
 		// Use the passed in options (if any)
 		if (opts) {
@@ -264,12 +265,13 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 
 		physics.update(this, function(playerIdx) {
 			this.scores[playerIdx]++;
-			// Notify caller here that a point was scored.
+			// TODO: Notify caller here that a point was scored.
 
-			for (var score in this.scores) {
-				if (score >= options.pointsInRound) {
+			for ( var i=0; i < this.scores.length; i++ ) {
+				var score = this.scores[i];
+				if ( score >= options.pointsInRound ) {
 					this.round++;
-					// Notify caller here that a new round has begun.
+					// TODO: Notify caller here that a new round has begun.
 				}
 			}
 		});
@@ -284,28 +286,20 @@ define(["./pong_physics", "./pong_assets"], function(physicsModule, assetsModule
 	PongGame.prototype.render = function(ctx) {
 		ctx.clearRect(0, 0, this.board.width, this.board.height);
 
-		//console.log(this.paddles);
 		if (this.paddles.length > 0) {
-			for (var idx in this.paddles) {
-				this.paddles[idx].render(ctx);
+			for ( var i=0; i < this.paddles.length; i++ ) {
+				this.paddles[i].render(ctx);
 			}
 		}
 
-		//console.log(this.balls);
 		if (this.balls.length > 0) {
-			for (var ball in this.balls) {
-				this.balls[ball].render(ctx);
+			for ( var i=0; i < this.balls.length; i++ ) {
+				this.balls[i].render(ctx);
 			}
 		}
 	};
 
 	return {
-		/**
-		 * Creates new game instance with the provided board and options.
-		 *
-		 * @property create
-		 * @type Function
-		 */
 		create: function(board, options) {
 			return new PongGame(board, options);
 		}

@@ -1,16 +1,30 @@
-/* 
- * pong_physics.js
- * game: PongGame instance
- * scoreCallback = function(playerIdx, increment)
- */
 "use strict";
 
+/**
+ * Module that contains logic for collision and movement
+ * of game assets.
+ *
+ * @module pong_physics
+ */
 define(function() {
 
+	/**
+	 * Provides the logic for collision and movement of game assets.
+	 *
+	 * @class PongPhysics
+	 * @constructor
+	 */
 	function PongPhysics() {
 		// Noop
 	}
 
+	/**
+	 * Updates the game assets according to movement and collision logic.
+	 *
+	 * @method update
+	 * @param {Object} game The game instance to update.
+	 * @param {Function} scoreCallback The function to call when a score is made.
+	 */
 	PongPhysics.prototype.update = function(game, scoreCallback) {
 		var board = game.board;
 		var paddles = game.paddles;
@@ -29,7 +43,7 @@ define(function() {
 			
 			// The ball hit a side-wall.
 			// A score happened!
-			// Todo: Reset the ball position and increment the round (impl init_round event)
+			// TODO: Reset the ball position and increment the round (impl init_round event)
 			if (ball.x <= 0) {
 				ball.angle = Math.PI - ball.angle;
 				if (scoreCallback) {
@@ -43,7 +57,7 @@ define(function() {
 			}
 
 			// The ball hit a paddle.
-			// Todo: I need to get the width (offset) between the paddle and the board (in CSS, the padding)
+			// TODO: I need to get the width (offset) between the paddle and the board (in CSS, the padding)
 			var paddle_offset = board.padding;
 
 			//console.log("ball-y: " + this.y + ", paddle-y: " + paddles[0])
@@ -73,6 +87,7 @@ define(function() {
 			if (ball.angle < 0){
 				ball.angle = (2 * Math.PI) - ball.angle;
 			}
+			
 		} // /for
 	}; // /update
 
