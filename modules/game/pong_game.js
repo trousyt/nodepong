@@ -263,14 +263,15 @@ define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModul
 			};
 		}
 
+		var that = this;
 		physics.update(this, function(playerIdx) {
-			this.scores[playerIdx]++;
+			that.scores[playerIdx]++;
 			// TODO: Notify caller here that a point was scored.
 
-			for ( var i=0; i < this.scores.length; i++ ) {
-				var score = this.scores[i];
+			for ( var i=0; i < that.scores.length; i++ ) {
+				var score = that.scores[i];
 				if ( score >= options.pointsInRound ) {
-					this.round++;
+					that.round++;
 					// TODO: Notify caller here that a new round has begun.
 				}
 			}
