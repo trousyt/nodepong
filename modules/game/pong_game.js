@@ -11,10 +11,10 @@
  */
 
 // "Global" game counter.
-var nextGameId = 0;
+var nextGameId = 1;
 
-define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./debug"], 
-	function(physicsModule, boardModule, ballModule, paddleModule, debug) {
+define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext_pubsub", "./debug"], 
+	function(physicsModule, boardModule, ballModule, paddleModule, pubsub, debug) {
 	var physics = physicsModule.create();
 
 	// Private instance vars.
@@ -32,11 +32,13 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 	 */
 	function PongGame(board, opts) {
 
-		options.paddleInit = paddleModule.createDefault;
-		options.boardInit = boardModule.createDefault;
-		options.ballInit = ballModule.createDefault;
+		options.initializers = {
+			paddle: paddleModule.createDefault,
+			board: boardModule.createDefault,
+			ball: ballModule.createDefault
+		};
 
-		this.board = board || options.boardInit();	// The board instance
+		this.board = board || boardModule.createDefault();	// The board instance
 		this.paddles = [];			// Paddle array (max size 2)
 		this.balls = [];			// Balls array
 		this.scores = [0,0];		// Scores array
@@ -50,9 +52,30 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 				if (opts.hasOwnProperty(prop)) {
 					options[prop] = opts[prop];
 				}
-			}	
+			}
 		}
+
+		var that = this;
+		physics.on("score", function(playerIdx) {
+			debug.write("Player '" + playerIdx + "' scored!");
+
+			that.scores[playerIdx]++;
+			that.fire("score", playerIdx);
+			// TODO: Reset asset positions.
+
+			for (var i=0; i < that.scores.length; i++) {
+				var score = that.scores[i];
+				if (score >= options.pointsInRound) {
+					that.round++;
+					that.fire("newRound", that.round);
+					//TODO: Reset points, board.
+				}
+			}
+		});
 	};	// /PongGame
+
+	// Extend this class with publish-subscribe functionality.
+	pubsub(PongGame.prototype);
 
 	/**
 	 * Creates a new asset of the provided property name.
@@ -64,9 +87,9 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 	 */
 	var createAsset = function(name) {
 		var creators = {
-			"paddles": options.paddleInit,
-			"balls": options.ballInit,
-			"board": options.boardInit
+			"paddles": options.initializers.paddle,
+			"balls": options.initializers.ball,
+			"board": options.initializers.board
 		};
 
 		// Handle error case where the type isn't known.
@@ -121,7 +144,9 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 	PongGame.prototype.addPlayer = function() {
 		var playerIdx = getNextPlayerIdx(this);
 		if (playerIdx < 0) return -1;
+
 		this.addPaddle(playerIdx);
+		this.fire("playerAdded", playerIdx);
 		return playerIdx;
 	};
 
@@ -132,7 +157,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 	 * @param {Object} [ball] The ball instance to add.
 	 */
 	PongGame.prototype.addBall = function(ball) {
-		ball = ball || options.ballInit();
+		ball = ball || options.initializers.ball();
 
 		if (!ball) {
 			throw {
@@ -142,6 +167,8 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 		}
 
 		this.balls.push(ball);
+		this.fire("ballAdded", ball);
+		return ball;
 	};
 
 	/**
@@ -166,7 +193,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 	 * @param {Object} [paddle] The paddle instance to add.
 	 */
 	PongGame.prototype.addPaddle = function(idx, paddle) {
-		paddle = paddle || options.paddleInit();
+		paddle = paddle || options.initializers.paddle();
 
 		if (!paddle) {
 			throw {
@@ -177,6 +204,8 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 
 		initPaddlePosition(this, idx, paddle);
 		this.paddles.push(paddle);
+		this.fire("paddleAdded", [idx, paddle]);
+		return paddle;
 	};
 
 	/**
@@ -201,7 +230,8 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 		this.started = true;
 		if (this.balls.length === 0) {
 			this.addBall();
-		}	
+		}
+		this.fire("started");
 	};
 
 	/**
@@ -241,18 +271,17 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 				// proper object when necessary.
 				if (level === 0) parent = prop;
 				if (typeof source[prop] === "object") {
-					//console.log("Syncing object: " + prop);
 					target[prop] = target[prop] || createAsset(parent);
 					sync(source[prop], target[prop], level + 1);
 					continue;
 				}
 
-				//console.log("Syncing property: '" + prop + "' with value '" + source[prop] + "'");;
 				target[prop] = source[prop];
 			} // /for
 		}; // /sync
 
 		sync(payload, that);
+		this.fire("synced");
 	};
 
 	/**
@@ -268,19 +297,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./deb
 			};
 		}
 
-		var that = this;
-		physics.update(this, function(playerIdx) {
-			that.scores[playerIdx]++;
-			// TODO: Notify caller here that a point was scored.
-
-			for ( var i=0; i < that.scores.length; i++ ) {
-				var score = that.scores[i];
-				if ( score >= options.pointsInRound ) {
-					that.round++;
-					// TODO: Notify caller here that a new round has begun.
-				}
-			}
-		});
+		physics.update(this);
 	};
 
 	/**

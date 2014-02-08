@@ -6,7 +6,7 @@
  *
  * @module pong_physics
  */
-define(["./debug"], function(debug) {
+define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
 
 	/**
 	 * Provides the logic for collision and movement of game assets.
@@ -16,16 +16,18 @@ define(["./debug"], function(debug) {
 	 */
 	function PongPhysics() {
 		// Noop
-	}
+	};
+
+	// Extend this class with publish-subscribe functionality.
+	pubsub(PongPhysics.prototype);
 
 	/**
 	 * Updates the game assets according to movement and collision logic.
 	 *
 	 * @method update
 	 * @param {Object} game The game instance to update.
-	 * @param {Function} scoreCallback The function to call when a score is made.
 	 */
-	PongPhysics.prototype.update = function(game, scoreCallback) {
+	PongPhysics.prototype.update = function(game) {
 		var board = game.board;
 		var paddles = game.paddles;
 		var balls = game.balls;
@@ -43,36 +45,33 @@ define(["./debug"], function(debug) {
 			// The ball hit a side-wall.
 			// A score happened!
 			// TODO: Reset the ball position and increment the round (impl init_round event)
-			if (ball.x <= 0) {
+			if (ball.x <= 0) {					// Left wall
 				ball.angle = Math.PI - ball.angle;
-				if (scoreCallback) {
-					scoreCallback(0);
-				}				
-			} else if (ball.x >= board.width) {
+				this.fire("score", 1);
+			} else if (ball.x >= board.width) {	// Right wall
 				ball.angle = Math.PI - ball.angle;
-				if (scoreCallback) {
-					scoreCallback(1);
-				}
+				this.fire("score", 0);
 			}
 
 			// The ball hit a paddle.
 			var paddleOffset = board.padding;
-			if ((ball.x <= (paddleOffset + paddles[0].width) && 
+			if ((ball.x <= (paddleOffset + paddles[0].width) && 				// Left paddle
 				ball.x >= paddleOffset &&
 				ball.y >= paddles[0].y &&
 				ball.y <= paddles[0].y + paddles[0].height) ||	
-			    (ball.x >= board.width - (paddleOffset + paddles[1].width) && 
+			    (ball.x >= board.width - (paddleOffset + paddles[1].width) && 	// Right paddle
 				ball.x <= board.width - paddleOffset &&
 				ball.y >= paddles[1].y && 
 				ball.y <= paddles[1].y + paddles[1].height)) {
+
 				ball.angle = Math.PI - ball.angle;
 			}
 		
 			// The ball hit a top/bottom wall.
-			if (ball.y <= 0) {
+			if (ball.y <= 0) {						// Top wall
 				ball.angle = ball.angle - Math.PI;
 				debug.write("hit y <= 0");
-			} else if (ball.y >= board.height) {
+			} else if (ball.y >= board.height) {	// Bottom wall
 				ball.y = board.height;
 				ball.angle = ball.angle - Math.PI;
 				debug.write("hit y >= height");
