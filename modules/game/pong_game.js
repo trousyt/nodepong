@@ -13,7 +13,8 @@
 // "Global" game counter.
 var nextGameId = 0;
 
-define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModule, ballModule, paddleModule) {
+define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./debug"], 
+	function(physicsModule, boardModule, ballModule, paddleModule, debug) {
 	var physics = physicsModule.create();
 
 	// Private instance vars.
@@ -30,7 +31,12 @@ define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModul
 	 * @param {Object} [opts] The options to use for this game instance.
 	 */
 	function PongGame(board, opts) {
-		this.board = board;			// The board instance
+
+		options.paddleInit = paddleModule.createDefault;
+		options.boardInit = boardModule.createDefault;
+		options.ballInit = ballModule.createDefault;
+
+		this.board = board || options.boardInit();	// The board instance
 		this.paddles = [];			// Paddle array (max size 2)
 		this.balls = [];			// Balls array
 		this.scores = [0,0];		// Scores array
@@ -38,9 +44,6 @@ define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModul
 		this.gameId = nextGameId++;	// Unique game identifier
 		this.started = false;
 
-		options.paddleInit = paddleModule.createDefault;
-		options.ballInit = ballModule.createDefault;
-		
 		// Use the passed in options (if any)
 		if (opts) {
 			for(var prop in opts) {
@@ -62,7 +65,8 @@ define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModul
 	var createAsset = function(name) {
 		var creators = {
 			"paddles": options.paddleInit,
-			"balls": options.ballInit
+			"balls": options.ballInit,
+			"board": options.boardInit
 		};
 
 		// Handle error case where the type isn't known.
@@ -70,6 +74,7 @@ define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModul
 			return {};
 		}
 
+		debug.write("Creating object of type '" + name + "'");
 		var asset = creators[name]();
 		return asset;
 	};
@@ -287,12 +292,17 @@ define(["./pong_physics", "./pong_ball", "./pong_paddle"], function(physicsModul
 	PongGame.prototype.render = function(ctx) {
 		ctx.clearRect(0, 0, this.board.width, this.board.height);
 
+		// Render board.
+		this.board.render(ctx, this.scores);
+
+		// Render paddles.
 		if (this.paddles.length > 0) {
 			for ( var i=0; i < this.paddles.length; i++ ) {
 				this.paddles[i].render(ctx);
 			}
 		}
 
+		// Render balls.
 		if (this.balls.length > 0) {
 			for ( var i=0; i < this.balls.length; i++ ) {
 				this.balls[i].render(ctx);

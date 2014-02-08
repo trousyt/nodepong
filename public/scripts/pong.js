@@ -2,11 +2,8 @@
 
 $(document).ready(function() {
 	var that = this;
-	var debug = function(message) {
-		console.log(message);
-	}
 
-	require(["scripts/game/pong_game"], function(gameModule) {
+	require(["scripts/game/pong_game", "scripts/game/debug"], function(gameModule, debug) {
 		var socket = io.connect();
 
 		/*
@@ -14,7 +11,7 @@ $(document).ready(function() {
 		 * Redirects the client to a game channel.
 		 */
 		socket.on("game-redirect", function(channel) {
-			debug("Received game redirect to " + channel);
+			debug.write("Received game redirect to " + channel);
 			socket = io.connect(channel);
 
 			var gameCtx = {
@@ -32,14 +29,12 @@ $(document).ready(function() {
 
 			function syncGame(payload) {
 				gameCtx.game.sync(payload);
-				debug("Finished syncing game");
+				debug.write("Finished syncing game");
 			};
 
 			// Runs game logic after the game is initialized.
 			// --
 			function afterInit() {
-				// var myPaddle = gameCtx.game.paddles[gameCtx.playerIdx],
-				// 	oppPaddle = gameCtx.game.paddles[oppIdx];
 
 				/*
 				 * SocketIO Event: `alert`
@@ -63,7 +58,7 @@ $(document).ready(function() {
 				 * Update location of opponent's paddle.
 				 */
 				socket.on("paddle-updateoppy", function(y) {
-					//debug("opponent's paddle-y changed: " + y);
+					//debug.write("opponent's paddle-y changed: " + y);
 					var oppPaddle = gameCtx.game.paddles[gameCtx.oppPlayerIdx];					
 					if ( oppPaddle ) {
 						oppPaddle.y = y;
@@ -88,9 +83,9 @@ $(document).ready(function() {
 						maxY = canvas.height - myPaddle.height;
 					
 					// Get the constrained y-pos.
-					var constrY = relativeY < 0
-						? 0 : relativeY > maxY 
-							? maxY : relativeY;
+					var constrY = relativeY < 0 ?
+						0 : relativeY > maxY ?
+							maxY : relativeY;
 
 					// Update the server.
 					socket.emit("paddle-updatey", constrY);
@@ -105,7 +100,7 @@ $(document).ready(function() {
 			 * Initializes a new match.
 			 */
 			 socket.on("match-init", function(init) {
-			 	debug("Received match init");
+			 	debug.write("Received match init");
 			 	gameCtx.game.start();
 			 	syncGame(init);
 			 });
@@ -115,13 +110,14 @@ $(document).ready(function() {
 			 * Initializes the client with settings and game object.
 			 */
 			socket.on("game-init", function(init) {
-				debug("Received init for player " + init.playerIdx);
+				debug.write("Received init for player " + init.playerIdx);
 
 				// Update game board CSS settings.
 				canvas.width = init.game.board.width;
 				canvas.height = init.game.board.height;
 
 				// Create the game instance and immediately sync it.
+				gameCtx.settings.gameLoopInterval = init.gameLoopInterval;
 				gameCtx.playerIdx = init.playerIdx;
 				gameCtx.oppPlayerIdx = 1 - init.playerIdx;
 				gameCtx.game = gameModule.create();

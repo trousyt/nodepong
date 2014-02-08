@@ -6,14 +6,14 @@
  *
  * @module pong_paddle
  */
- define(function() {
+ define(["./debug"], function(debug) {
 
  	var options = {
  		defaults: {
 			x: 10,	
 			y: 10,
-			width: 20,
-			height: 80
+			width: 15,
+			height: 60
 		}
 	};
 

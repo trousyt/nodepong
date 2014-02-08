@@ -6,7 +6,7 @@
  *
  * @module pong_physics
  */
-define(function() {
+define(["./debug"], function(debug) {
 
 	/**
 	 * Provides the logic for collision and movement of game assets.
@@ -30,9 +30,8 @@ define(function() {
 		var paddles = game.paddles;
 		var balls = game.balls;
 
-		for (var idx in balls) {
-
-			var ball = balls[idx];
+		for ( var i=0; i < balls.length; i++ ) {
+			var ball = balls[i];
 
 			ball.x = ball.x + Math.cos(ball.angle) * ball.speed;
 			ball.y = ball.y + Math.sin(ball.angle) * ball.speed;
@@ -57,30 +56,26 @@ define(function() {
 			}
 
 			// The ball hit a paddle.
-			// TODO: I need to get the width (offset) between the paddle and the board (in CSS, the padding)
-			var paddle_offset = board.padding;
-
-			//console.log("ball-y: " + this.y + ", paddle-y: " + paddles[0])
-			if ((ball.x <= (paddles.offset + paddles.width) && 
-				ball.x >= paddles.offset &&
-				ball.y >= paddles[0] &&
-				ball.y <= paddles[0] + paddles.height) ||	
-			    (ball.x >= board.width - (paddles.offset + paddles.width) && 
-				ball.x <= board.width - paddles.offset &&
-				ball.y >= paddles[1] && 
-				ball.y <= paddles[1] + paddles.height)) {	
-				ball.angle = Math.PI - ball_angle;
+			var paddleOffset = board.padding;
+			if ((ball.x <= (paddleOffset + paddles[0].width) && 
+				ball.x >= paddleOffset &&
+				ball.y >= paddles[0].y &&
+				ball.y <= paddles[0].y + paddles[0].height) ||	
+			    (ball.x >= board.width - (paddleOffset + paddles[1].width) && 
+				ball.x <= board.width - paddleOffset &&
+				ball.y >= paddles[1].y && 
+				ball.y <= paddles[1].y + paddles[1].height)) {
+				ball.angle = Math.PI - ball.angle;
 			}
 		
 			// The ball hit a top/bottom wall.
 			if (ball.y <= 0) {
-				ball.y = ball.dx;
-				ball.angle = 0 - ball.angle;
-				console.log("hit y <= 0");
-			} else if (ball.y >= board.height - ball.height) {
-				ball.y = board.height - ball.dx;
-				ball.angle = 0 - ball.angle;
-				console.log("hit y >= height");
+				ball.angle = ball.angle - Math.PI;
+				debug.write("hit y <= 0");
+			} else if (ball.y >= board.height) {
+				ball.y = board.height;
+				ball.angle = ball.angle - Math.PI;
+				debug.write("hit y >= height");
 			}	
 
 			// Convert ball angle to remain positive

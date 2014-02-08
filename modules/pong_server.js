@@ -14,10 +14,11 @@
  	nodeRequire: require
  });
 
-var gameModule = requirejs("./pong_game");
+var gameModule = requirejs("./pong_game"),
+	debug = requirejs("./debug");
 
 // Server vars.
-var gameLoopInterval = 1000;	// .1s
+var gameLoopInterval = 50;	// .05s
 var gameSyncInterval = 20000;	// 25s
 var games = [];
 
@@ -28,18 +29,6 @@ var res = {
 	WAITING_FOR_TURN: "Game full. Waiting for turn...",
 	GAME_STARTING: "Game starting! Get ready..."
 };
-
-// Screen dimensions.
-var board = {
-	width: 640,
-	height: 480,
-	padding: 10
-}
-
-var debug = function(message) {
-	console.log(message);
-};
-
 
 /**
  * Registers the pong game socket logic with the provided SocketIO instance.
@@ -57,7 +46,7 @@ exports.register = function(socketio, callback) {
 	 * @return {Object} A new PongGame instance.
 	 */
 	var createGameInstance = function() {
-		var game = gameModule.create(board);
+		var game = gameModule.create();
 		games.push(game);
 		return game;
 	};
@@ -100,7 +89,7 @@ exports.register = function(socketio, callback) {
 	 * @param {String} msg The message to write.
 	 */
 	var socketDebug = function(socket, msg) {
-		debug(socket.id + " " + msg);
+		debug.write(socket.id + " " + msg);
 	}
 
 	/*
@@ -140,7 +129,7 @@ exports.register = function(socketio, callback) {
 
 			// Add the player to the game.
 			var playerIdx = game.addPlayer(socket);
-			if (playerIdx === -1) return;
+			if (playerIdx === -1) return; // TODO: The user couldn't be added, so redirect the client back to the lobby.
 
 			var playerNumber = playerIdx + 1;
 			socketDebug(socket, "Added player " + playerNumber + " to game instance " + game.gameId);
@@ -167,23 +156,29 @@ exports.register = function(socketio, callback) {
 				game.paddles[playerIdx].y = y;
 
 				// Immediately send this paddle y-pos to the opponent.
-				var opponentPlayerIdx = playerIdx === 0 ? 1 : 0;
+				var opponentPlayerIdx = 1 - playerIdx;
 				var opponentSocket = game.sockets[opponentPlayerIdx];
 				if (opponentSocket){
 					opponentSocket.emit("paddle-updateoppy", y);	
 				}
 			});
 
+			// Verify the game meets all sufficient conditions to start
+			if (!game.isFull()) {
+				sendMessage(socket, res.WAITING_FOR_PLAYER);
+				return;
+			}
+
 			/*
 			 * Game Loop
 			 */
 			setInterval(function(){
 
-				// Verify the game meets all sufficient conditions to start
-				if (!game.isFull()) {
-					sendMessage(socket, res.WAITING_FOR_PLAYER);
-					return;
-				}
+				// // Verify the game meets all sufficient conditions to start
+				// if (!game.isFull()) {
+				// 	sendMessage(socket, res.WAITING_FOR_PLAYER);
+				// 	return;
+				// }
 
 				// If we get here, the game is full and we can start.
 				// When we start, sync the client again.
@@ -196,7 +191,6 @@ exports.register = function(socketio, callback) {
 
 				// Update the game, which will in turn update the physics.
 				game.update();
-
 			}, gameLoopInterval);
 
 			/*

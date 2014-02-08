@@ -6,7 +6,7 @@
  *
  * @module pong_ball
  */
- define(function() {
+ define(["./debug"], function(debug) {
 
  	var options = {
  		defaults: {
@@ -33,9 +33,9 @@
 	 * @param {Number} dx The change in x position on every move.
 	 * @param {Number} dy The change in y position on every move.
 	 * @param {Number} speed The movement speed of the ball.
-	 * @param {Object} defaults The defaults of the ball object.
+	 * @param {Object} opts Options for the ball object.
 	 */
-	function Ball(size, x, y, angle, dx, dy, speed, options) {
+	function Ball(size, x, y, angle, dx, dy, speed, opts) {
 		this.size = size || 10;
 		this.x = x || 0;
 		this.y = y || 0;
@@ -44,7 +44,11 @@
 		this.dy = dy || 0;
 		this.speed = speed || 0;
 
-		
+		for(var prop in opts) {
+			if (options.hasOwnProperty(prop)) {
+				options[prop] = opts[prop];
+			}
+		}
 
 		// this.move = function(newx, newy, newangle, newdx, newdy, newda) {
 		// 	var x = newx || this.x;
