@@ -5,7 +5,6 @@
  * logic, and event handlers and emitters.
  *
  * @module pong_server
- * 
  */
 
  var requirejs = require("requirejs");
