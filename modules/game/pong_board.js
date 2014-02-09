@@ -54,6 +54,14 @@
 
 		// TODO: Clear rect every X number of pixels to make it dotted.
 
+		// Draw the scores.
+		var textOffset = 20;
+		var textWidth = ctx.measureText(scores[0]).width;
+		ctx.font = "30px Courier";
+		ctx.fillStyle = "white";
+		ctx.fillText(scores[0], (width / 2) - textOffset - textWidth, 40);
+		ctx.fillText(scores[1], (width / 2) + textOffset, 40);
+
 		ctx.restore();
 	};
 
