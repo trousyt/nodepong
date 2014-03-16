@@ -204,6 +204,8 @@ exports.register = function(socketio, callback) {
 			socket.on("disconnect", function() {
 				socketDebug(socket, "Player disconnected");
 				// TODO: Complete disconnect logic.
+				// Remove player from the game
+				// 
 			});
 
 		}); // /Game Channel

@@ -37,7 +37,7 @@
 	 * @method render
 	 * @param {Object} ctx The 2d context of the canvas.
 	 */
-	Board.prototype.render = function(ctx, scores) {
+	Board.prototype.render = function(ctx, round, scores) {
 		var width = this.width;
 		var height = this.height;
 		var padding = this.padding;
@@ -53,11 +53,12 @@
 
 		// TODO: Clear rect every X number of pixels to make it dotted.
 
-		// Draw the scores.
+		// Draw the scores and round.
 		var textOffset = 20;
 		var textWidth = ctx.measureText(scores[0]).width;
 		ctx.font = "30px Courier";
 		ctx.fillStyle = "white";
+		ctx.fillText(round, 0 + textOffset, 40);
 		ctx.fillText(scores[0], (width / 2) - textOffset - textWidth, 40);
 		ctx.fillText(scores[1], (width / 2) + textOffset, 40);
 

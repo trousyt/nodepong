@@ -28,6 +28,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		 * @param {Object} [opts] The options to use for this game instance.
 		 */
 		function PongGame(board, opts) {
+			var that = this;
 
 			options.initializers = {
 				paddle: paddleModule.createDefault,
@@ -52,20 +53,22 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 				}
 			}
 
-			var that = this;
+			// Handle ball scoring logic.
+			// We want to reset asset positions and increment the
+			// score whenever the physics instance reports a score.
 			physics.on("score", function(playerIdx) {
 				debug.write("Player '" + playerIdx + "' scored!");
 
 				that.scores[playerIdx]++;
 				that.fire("score", playerIdx);
-				// TODO: Reset asset positions.
+				that.resetBalls();
 
 				for (var i=0; i < that.scores.length; i++) {
 					var score = that.scores[i];
 					if (score >= options.pointsInRound) {
 						that.round++;
+						that.resetScores();
 						that.fire("newRound", that.round);
-						//TODO: Reset points, board.
 					}
 				}
 			});
@@ -166,6 +169,26 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			this.balls.push(ball);
 			this.fire("ballAdded", ball);
 			return ball;
+		};
+
+		/**
+		 * Resets the ball position.
+		 * 
+		 * @method resetBalls
+		 */
+		PongGame.prototype.resetBalls = function() {
+			if (this.balls && this.balls.length > 0) {
+				var ball = this.balls[0];
+				ball.x = this.board.width / 2;
+				ball.y = this.board.height / 2;
+				ball.angle = 0;
+			}
+		};
+
+		PongGame.prototype.resetScores = function() {
+			if (this.scores && this.scores.length > 1) {
+				this.scores[0] = this.scores[1] = 0;
+			}
 		};
 
 		/**
@@ -307,7 +330,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			ctx.clearRect(0, 0, this.board.width, this.board.height);
 
 			// Render board.
-			this.board.render(ctx, this.scores);
+			this.board.render(ctx, this.round, this.scores);
 
 			// Render paddles.
 			if (this.paddles.length > 0) {
