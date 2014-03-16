@@ -201,11 +201,15 @@ exports.register = function(socketio, callback) {
 			}, gameSyncInterval);
 
 
+			/*
+			 * Handle player disconnects.
+			 */
 			socket.on("disconnect", function() {
-				socketDebug(socket, "Player disconnected");
-				// TODO: Complete disconnect logic.
-				// Remove player from the game
-				// 
+				// Remove the player from the game. By removing the player,
+				// the game will pause and we'll start waiting for the next
+				// player to join.
+				socketDebug(socket, "Player " + playerIdx + " disconnected");
+				game.removePlayer(playerIdx);
 			});
 
 		}); // /Game Channel

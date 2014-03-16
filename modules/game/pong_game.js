@@ -43,6 +43,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			this.round = 1;				// Round counter
 			this.gameId = nextGameId++;	// Unique game identifier
 			this.started = false;
+			this.paused = false;
 
 			// Use the passed in options (if any)
 			if (opts) {
@@ -150,6 +151,26 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			return playerIdx;
 		};
 
+		/** 
+		 * Removes a player from the game.
+		 *
+		 * @method removePlayer
+		 * @param {Number} The index of the player to remove.
+		 */
+		PongGame.prototype.removePlayer = function(playerIdx) {
+			debug.write("removePlayer playerIdx = " + playerIdx);
+
+			if (typeof this.paddles[playerIdx] === 'undefined') {
+				throw {
+					name: "InvalidPlayerIdx",
+					message: "The player at index " + playerIdx + " isn't a valid player."
+				};
+			}
+
+			this.paddles.slice(playerIdx, 1);
+			this.pause();
+		}
+
 		/**
 		 * Adds a new ball instance to the game.
 		 *
@@ -185,6 +206,11 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			}
 		};
 
+		/**
+		 * Resets the game scores.
+		 * 
+		 * @method resetScores
+		 */	
 		PongGame.prototype.resetScores = function() {
 			if (this.scores && this.scores.length > 1) {
 				this.scores[0] = this.scores[1] = 0;
@@ -248,11 +274,24 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			if (this.started) return;
 
 			this.started = true;
+			this.paused = false;
 			if (this.balls.length === 0) {
 				this.addBall();
 			}
 			this.fire("started");
 		};
+
+		/**
+		 * Pauses the game and stops rendering.
+		 *
+		 * @method pause
+		 */
+		PongGame.prototype.pause = function() {
+			if (!this.started) return;
+
+			this.paused = true;
+			this.fire("paused");
+		}
 
 		/**
 		 * Returns a payload object for properties that should be sync'd.
@@ -305,11 +344,23 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		};
 
 		/**
+		 * Returns true if the game is in a running state.
+		 *
+		 * @method isRunning
+		 * @return {Boolean} True if the game is running; false otherwise.
+		 */
+		PongGame.prototype.isRunning = function() {
+			return this.started && !this.paused;
+		};
+
+		/**
 		 * Updates the game asset positions.
 		 *
 		 * @method update
 		 */
 		PongGame.prototype.update = function() {
+			if (!this.isRunning()) return;
+
 			if (!physics) {
 				throw { 
 					name: "PhysicsNotInitialized",
@@ -327,6 +378,9 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		 * @param {Object} ctx The canvas 2d context.
 		 */
 		PongGame.prototype.render = function(ctx) {
+			if (!this.isRunning()) return;
+
+			// Clear the board so we can redraw.
 			ctx.clearRect(0, 0, this.board.width, this.board.height);
 
 			// Render board.
