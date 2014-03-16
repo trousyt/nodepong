@@ -35,8 +35,13 @@ define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
 		for ( var i=0; i < balls.length; i++ ) {
 			var ball = balls[i];
 
-			ball.x = ball.x + Math.cos(ball.angle) * ball.speed;
-			ball.y = ball.y + Math.sin(ball.angle) * ball.speed;
+			//define deltaX and deltaY
+			var dx = Math.cos(ball.angle) * ball.speed;
+			var dy = Math.sin(ball.angle) * ball.speed;
+			
+			//new ball location
+			ball.x = ball.x + dx; 
+			ball.y = ball.y + dy;
 
 			//console.log("ball_x: " + ball.x);
 			//console.log("ball_y: " + ball.y);
@@ -55,31 +60,77 @@ define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
 
 			// The ball hit a paddle.
 			var paddleOffset = board.padding;
-			if ((ball.x <= (paddleOffset + paddles[0].width) && 				// Left paddle
-				ball.x >= paddleOffset &&
-				ball.y >= paddles[0].y &&
-				ball.y <= paddles[0].y + paddles[0].height) ||	
-			    (ball.x >= board.width - (paddleOffset + paddles[1].width) && 	// Right paddle
-				ball.x <= board.width - paddleOffset &&
-				ball.y >= paddles[1].y && 
-				ball.y <= paddles[1].y + paddles[1].height)) {
+			var paddle = 0;
 
-				ball.angle = Math.PI - ball.angle;
+			// Calculate new ball angle after bouncing off of a paddle.	
+			var paddleBounce = function(paddle){
+				var paddleIdx = paddle - 1;
+
+				var paddleMid = paddles[paddleIdx].y + (paddles[paddleIdx].height / 2);
+				var ballMid = ball.y + (ball.size / 2);
+
+				var midDistance = paddleMid - ballMid;
+				var fullMidDistance = (paddles[paddleIdx].height / 2) + (ball.size / 2);
+
+				var angle = (midDistance / fullMidDistance) *  (Math.PI / 2);
+
+				angle = (Math.PI / 2) - angle;
+
+				if (paddleIdx == 1){
+					ball.x = paddles[paddleIdx].x - ball.size;
+					angle = Math.PI - angle;
+				}else{
+					ball.x = paddles[paddleIdx].x + paddleOffset;
+				}
+
+				return angle;
+			};
+			
+			// The ball hit the left paddle.
+			if (ball.x <= (paddleOffset + paddles[0].width) && 				// Left paddle
+				ball.x >= paddleOffset &&
+				ball.y > (paddles[0].y - ball.size) &&
+				ball.y < (paddles[0].y + paddles[0].height) &&
+				dx < 0){
+
+				paddle = 1;
+			}
+			// The ball hit the right paddle.
+			else if (ball.x >= board.width - (paddleOffset + paddles[1].width) && 	// Right paddle
+				ball.x <= (board.width - paddleOffset) &&
+				ball.y > (paddles[1].y - ball.size) && 
+				ball.y < (paddles[1].y + paddles[1].height) &&
+				dx > 0){
+
+				paddle = 2;
+			}
+
+			if (paddle != 0){
+				ball.angle = paddleBounce(paddle);
+				paddle = 0;
 			}
 		
+			// Calculate new ball angle after bouncing off of top or bottom walls
+			var topBottomBounce = function(angle){
+				angle = (2 * Math.PI) - angle;
+
+				return angle;
+			};
+
 			// The ball hit a top/bottom wall.
-			if (ball.y <= 0) {						// Top wall
-				ball.angle = ball.angle - Math.PI;
+			if (ball.y <= 0) {
+				ball.y = 0;						// Top wall
+				ball.angle = topBottomBounce(ball.angle);
 				debug.write("hit y <= 0");
 			} else if (ball.y >= board.height) {	// Bottom wall
-				ball.y = board.height;
-				ball.angle = ball.angle - Math.PI;
+				ball.y = board.height -  ball.size;
+				ball.angle = topBottomBounce(ball.angle);
 				debug.write("hit y >= height");
 			}	
 
 			// Convert ball angle to remain positive
 			if (ball.angle < 0){
-				ball.angle = (2 * Math.PI) - ball.angle;
+				ball.angle = (2 * Math.PI) + ball.angle;
 			}
 			
 		} // /for
