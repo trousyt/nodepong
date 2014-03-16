@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Module that contains logic for collision and movement
  * of game assets.
@@ -7,6 +5,7 @@
  * @module pong_physics
  */
 define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
+	"use strict";
 
 	/**
 	 * Provides the logic for collision and movement of game assets.

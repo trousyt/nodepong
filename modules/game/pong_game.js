@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Module that provides logic and construction for the PongGame class.
  *	board: {width, height, padding}
@@ -11,9 +9,9 @@
  */
 define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext_pubsub", "./debug"], 
 	function(physicsModule, boardModule, ballModule, paddleModule, pubsub, debug) {
-		var physics = physicsModule.create();
+		"use strict";
 
-		// "Global" game counter.
+		var physics = physicsModule.create();
 		var nextGameId = 1;
 
 		// Private instance vars.
@@ -30,6 +28,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		 * @param {Object} [opts] The options to use for this game instance.
 		 */
 		function PongGame(board, opts) {
+			var that = this;
 
 			options.initializers = {
 				paddle: paddleModule.createDefault,
@@ -44,6 +43,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			this.round = 1;				// Round counter
 			this.gameId = nextGameId++;	// Unique game identifier
 			this.started = false;
+			this.paused = false;
 
 			// Use the passed in options (if any)
 			if (opts) {
@@ -54,20 +54,22 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 				}
 			}
 
-			var that = this;
+			// Handle ball scoring logic.
+			// We want to reset asset positions and increment the
+			// score whenever the physics instance reports a score.
 			physics.on("score", function(playerIdx) {
 				debug.write("Player '" + playerIdx + "' scored!");
 
 				that.scores[playerIdx]++;
 				that.fire("score", playerIdx);
-				// TODO: Reset asset positions.
+				that.resetBalls();
 
 				for (var i=0; i < that.scores.length; i++) {
 					var score = that.scores[i];
 					if (score >= options.pointsInRound) {
 						that.round++;
+						that.resetScores();
 						that.fire("newRound", that.round);
-						//TODO: Reset points, board.
 					}
 				}
 			});
@@ -149,6 +151,26 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			return playerIdx;
 		};
 
+		/** 
+		 * Removes a player from the game.
+		 *
+		 * @method removePlayer
+		 * @param {Number} The index of the player to remove.
+		 */
+		PongGame.prototype.removePlayer = function(playerIdx) {
+			debug.write("removePlayer playerIdx = " + playerIdx);
+
+			if (typeof this.paddles[playerIdx] === 'undefined') {
+				throw {
+					name: "InvalidPlayerIdx",
+					message: "The player at index " + playerIdx + " isn't a valid player."
+				};
+			}
+
+			this.paddles.slice(playerIdx, 1);
+			this.pause();
+		}
+
 		/**
 		 * Adds a new ball instance to the game.
 		 *
@@ -168,6 +190,31 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			this.balls.push(ball);
 			this.fire("ballAdded", ball);
 			return ball;
+		};
+
+		/**
+		 * Resets the ball position.
+		 * 
+		 * @method resetBalls
+		 */
+		PongGame.prototype.resetBalls = function() {
+			if (this.balls && this.balls.length > 0) {
+				var ball = this.balls[0];
+				ball.x = this.board.width / 2;
+				ball.y = this.board.height / 2;
+				ball.angle = 0;
+			}
+		};
+
+		/**
+		 * Resets the game scores.
+		 * 
+		 * @method resetScores
+		 */	
+		PongGame.prototype.resetScores = function() {
+			if (this.scores && this.scores.length > 1) {
+				this.scores[0] = this.scores[1] = 0;
+			}
 		};
 
 		/**
@@ -227,11 +274,24 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 			if (this.started) return;
 
 			this.started = true;
+			this.paused = false;
 			if (this.balls.length === 0) {
 				this.addBall();
 			}
 			this.fire("started");
 		};
+
+		/**
+		 * Pauses the game and stops rendering.
+		 *
+		 * @method pause
+		 */
+		PongGame.prototype.pause = function() {
+			if (!this.started) return;
+
+			this.paused = true;
+			this.fire("paused");
+		}
 
 		/**
 		 * Returns a payload object for properties that should be sync'd.
@@ -284,11 +344,23 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		};
 
 		/**
+		 * Returns true if the game is in a running state.
+		 *
+		 * @method isRunning
+		 * @return {Boolean} True if the game is running; false otherwise.
+		 */
+		PongGame.prototype.isRunning = function() {
+			return this.started && !this.paused;
+		};
+
+		/**
 		 * Updates the game asset positions.
 		 *
 		 * @method update
 		 */
 		PongGame.prototype.update = function() {
+			if (!this.isRunning()) return;
+
 			if (!physics) {
 				throw { 
 					name: "PhysicsNotInitialized",
@@ -306,10 +378,13 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		 * @param {Object} ctx The canvas 2d context.
 		 */
 		PongGame.prototype.render = function(ctx) {
+			if (!this.isRunning()) return;
+
+			// Clear the board so we can redraw.
 			ctx.clearRect(0, 0, this.board.width, this.board.height);
 
 			// Render board.
-			this.board.render(ctx, this.scores);
+			this.board.render(ctx, this.round, this.scores);
 
 			// Render paddles.
 			if (this.paddles.length > 0) {

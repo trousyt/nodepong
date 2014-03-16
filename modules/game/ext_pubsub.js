@@ -1,11 +1,10 @@
-"use strict";
-
 /**
  * Extends objects with publish and subscribe functionality.
  *
  * @module ext_pubsub
  */
 define(["./debug"], function(debug) {
+	"use strict";
 
 	var pubsub = function(extend) {
 

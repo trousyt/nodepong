@@ -1,6 +1,5 @@
-"use strict";
-
 $(document).ready(function() {
+	"use strict";
 	var that = this;
 
 	require(["scripts/game/pong_game", "scripts/game/debug"], function(gameModule, debug) {
