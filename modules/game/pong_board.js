@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Module that models and contains logic for the rendering
  * and movement of a game board.
@@ -7,6 +5,7 @@
  * @module pong_board
  */
  define(["./debug"], function(debug) {
+ 	"use strict";
 
  	var options = {
  		defaults: {

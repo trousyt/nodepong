@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Module that provides logic and construction for the PongGame class.
  *	board: {width, height, padding}
@@ -11,9 +9,9 @@
  */
 define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext_pubsub", "./debug"], 
 	function(physicsModule, boardModule, ballModule, paddleModule, pubsub, debug) {
-		var physics = physicsModule.create();
+		"use strict";
 
-		// "Global" game counter.
+		var physics = physicsModule.create();
 		var nextGameId = 1;
 
 		// Private instance vars.
