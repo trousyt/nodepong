@@ -68,12 +68,12 @@ define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
 				var paddleMid = paddles[paddleIdx].y + (paddles[paddleIdx].height / 2);
 				var ballMid = ball.y + (ball.size / 2);
 
-				var midDistance = paddleMid - ballMid;
+				var midDistance = ballMid - paddleMid;
 				var fullMidDistance = (paddles[paddleIdx].height / 2) + (ball.size / 2);
 
 				var angle = (midDistance / fullMidDistance) *  (Math.PI / 2);
 
-				angle = (Math.PI / 2) - angle;
+				//angle = (Math.PI / 2) - angle;
 
 				if (paddleIdx == 1){
 					ball.x = paddles[paddleIdx].x - ball.size;
