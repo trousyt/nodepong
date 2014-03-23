@@ -42,7 +42,7 @@ define(["./debug"], function(debug) {
 			for (var i=0; i < handlers.length; i++) {
 				var fn = handlers[i];
 
-				if (typeof params !== "array") {
+				if (!(params instanceof Array)) {
 					params = [params];
 				}
 

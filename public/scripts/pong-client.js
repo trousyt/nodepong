@@ -52,6 +52,12 @@ $(document).ready(function() {
 					syncGame(payload);
 				});
 
+				socket.on("ball-sync", function(ball) {
+					debug.write("Ball-sync called");
+					debug.write(ball);
+					gameCtx.game.balls[0].sync(ball);
+				});
+
 				/* 
 				 * SocketIO Event: `update-opponent`
 				 * Update location of opponent's paddle.

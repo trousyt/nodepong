@@ -73,7 +73,15 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 					}
 				}
 			});
+			
+			physics.on("paddleBounce", function(ball) {
+				debug.write("Firing paddleBounce in Game");
+				that.fire("paddleBounce", ball);
+			});
+
 		};	// /PongGame
+
+
 
 		// Extend this class with publish-subscribe functionality.
 		pubsub(PongGame.prototype);

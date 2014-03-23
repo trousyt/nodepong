@@ -38,6 +38,9 @@ define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
 			var dx = Math.cos(ball.angle) * ball.speed;
 			var dy = Math.sin(ball.angle) * ball.speed;
 			
+			ball.dx = dx;
+			ball.dy = dy;
+
 			//new ball location
 			ball.x = ball.x + dx; 
 			ball.y = ball.y + dy;
@@ -107,6 +110,10 @@ define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
 			if (paddle != 0){
 				ball.angle = paddleBounce(paddle);
 				paddle = 0;
+
+				debug.write("Firing paddleBounce in Physics");
+				this.fire("paddleBounce", ball);
+
 			}
 		
 			// Calculate new ball angle after bouncing off of top or bottom walls

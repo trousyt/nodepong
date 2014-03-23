@@ -162,6 +162,10 @@ exports.register = function(socketio, callback) {
 				}
 			});
 
+			game.on("paddleBounce", function(ball){
+				gameChannel.emit("ball-sync", ball);
+			});
+
 			// Verify the game meets all sufficient conditions to start
 			if (!game.isFull()) {
 				sendMessage(socket, res.WAITING_FOR_PLAYER);

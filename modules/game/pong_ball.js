@@ -59,6 +59,16 @@
 		// }
 	};
 
+	Ball.prototype.sync = function(ball) {
+		this.x = ball.x;
+		this.y = ball.y;
+		this.angle = ball.angle;
+		this.speed = ball.speed;
+		this.size =  ball.size;
+		this.dx = ball.dx;
+		this.dy = ball.dy;
+	};
+
 	/**
 	 * Renders the ball on a canvas.
 	 *
