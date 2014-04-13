@@ -15,7 +15,7 @@
 			angle: 0,
 			dx: 10,
 			dy: 10,
-			speed: 10
+			speed: 20
  		}
  	};
 

@@ -403,6 +403,10 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 
 			// Render balls.
 			if (this.balls.length > 0) {
+				if (this.balls.length > 1){
+					console.log("MULTIBALLS!!")	
+				}
+				
 				for ( var i=0; i < this.balls.length; i++ ) {
 					this.balls[i].render(ctx);
 				}

@@ -39,6 +39,7 @@ define(["./debug"], function(debug) {
 			}
 
 			var handlers = eventRegistry[event];
+			debug.write("handler count for event " + event + ": " + handlers.length);
 			for (var i=0; i < handlers.length; i++) {
 				var fn = handlers[i];
 

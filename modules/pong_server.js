@@ -17,7 +17,7 @@ var gameModule = requirejs("./pong_game"),
 	debug = requirejs("./debug");
 
 // Server vars.
-var gameLoopInterval = 50;	// .05s
+var gameLoopInterval = 100;	// .05s
 var gameSyncInterval = 20000;	// 20s
 var games = [];
 
@@ -162,10 +162,13 @@ exports.register = function(socketio, callback) {
 				}
 			});
 
-			game.on("paddleBounce", function(ball){
-				gameChannel.emit("ball-sync", ball);
-			});
-
+			if (!game.paddleBounceRegistered) {
+				game.on("paddleBounce", function(ball){
+					gameChannel.emit("ball-sync", ball);
+				});
+				game.paddleBounceRegistered = true;		
+			}
+			
 			// Verify the game meets all sufficient conditions to start
 			if (!game.isFull()) {
 				sendMessage(socket, res.WAITING_FOR_PLAYER);
