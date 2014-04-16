@@ -4,7 +4,7 @@
  *
  * @module pong_physics
  */
-define(["./ext_pubsub", "./debug"], function(pubsub, debug) {
+define(["../common/ext_pubsub", "../common/debug"], function(pubsub, debug) {
 	"use strict";
 
 	/**

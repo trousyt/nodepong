@@ -6,6 +6,7 @@ TODO
 4. Finish socket disconnection logic (impl removePlayer on game)
 5. Implement queueing for waiting players
 6. Implement chat channel for all players
+7. When the server can't be reached, locally pause the game and display an "Unavailable" message
 
 Completed
 =========

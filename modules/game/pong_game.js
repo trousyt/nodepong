@@ -7,16 +7,17 @@
  * @module pong_game
  * @requires pong_physics, pong_assets
  */
-define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext_pubsub", "./debug"], 
-	function(physicsModule, boardModule, ballModule, paddleModule, pubsub, debug) {
+define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./pong_settings", "../common/ext_pubsub", "../common/debug"], 
+	function(physicsModule, boardModule, ballModule, paddleModule, settings, pubsub, debug) {
 		"use strict";
 
+		debug.write("Initializing Game module");
 		var physics = physicsModule.create();
 		var nextGameId = 1;
 
 		// Private instance vars.
 		var options = {
-			pointsInRound: 10
+			pointsInRound: settings.pointsInRound
 		};
 
 		/**
@@ -81,8 +82,6 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 
 		};	// /PongGame
 
-
-
 		// Extend this class with publish-subscribe functionality.
 		pubsub(PongGame.prototype);
 
@@ -94,7 +93,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		 * @param {String} name The name of the property on the game instance.
 		 * @return {Object} A new instance of the object associated with the property name.
 		 */
-		var createAsset = function(name) {
+		function createAsset(name) {
 			var creators = {
 				"paddles": options.initializers.paddle,
 				"balls": options.initializers.ball,
@@ -175,7 +174,8 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 				};
 			}
 
-			this.paddles.slice(playerIdx, 1);
+			// Remove the player's paddle and pause the game.
+			this.paddles.slice(playerIdx, 1);	// TODO: This isn't causing isFull to return false
 			this.pause();
 		}
 
@@ -266,11 +266,21 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 		 * Returns true if the game is full.
 		 * 
 		 * @method isFull
-		 * @return {Boolean} True if the game is full. Otherwise, false.
+		 * @return {Boolean} True if the game is full; otherwise false.
 		 */
 		PongGame.prototype.isFull = function() {
 			return this.paddles.length === 2 && 
 				this.paddles[0] && this.paddles[1];
+		};
+
+		/**
+		 * Returns true if the game is empty.
+		 *
+		 * @method isEmpty
+		 * @return {Boolean} True if the game is empty; otherwise false.
+		 */
+		PongGame.prototype.isEmpty = function() {
+			return this.paddles.length === 0;
 		};
 
 		/**
@@ -408,6 +418,8 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./ext
 				}
 			}
 		};
+
+		// --------
 
 		return {
 			create: function(board, options) {

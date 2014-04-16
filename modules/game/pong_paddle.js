@@ -4,7 +4,7 @@
  *
  * @module pong_paddle
  */
- define(["./debug"], function(debug) {
+ define(["../common/debug"], function(debug) {
  	"use strict";
 
  	var options = {

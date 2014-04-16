@@ -1,18 +1,17 @@
-"use strict";
-
 /**
  * Module to provide debug functionality app-wide.
  *
  * @module debug
  */
 define(function() {
+	"use strict";
 
-	var my = {};
+	var dbg = {};
 
-	my.write = function(message) {
+	dbg.write = function(message) {
 		console.log(message);
 	};
 
-	return my;
+	return dbg;
 
 }); // /define
