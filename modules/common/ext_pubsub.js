@@ -44,8 +44,6 @@ define(["./debug"], function(debug) {
 			if (!event) return;
 			if (!fn) return;
 
-			var alias = args.alias;
-
 			// If an alias was provided, we check to see if it has
 			// already been defined on a registered handler.
 			// If it has, we simply exit out without re-adding.

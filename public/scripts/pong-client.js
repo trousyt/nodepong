@@ -19,6 +19,16 @@ $(document).ready(function() {
 			debug.write("Finished syncing game");
 		};
 
+		window.addEventListener("focus", function() {
+			debug.write("Gained focus");
+			// When the window/tab regains focus, 
+			// request a game-sync.
+			if (gameCtx.game) {
+				debug.write("Requesting game-sync");
+				socket.emit("game-sync");
+			}
+		});
+
 		function registerHandlers() {
 			debug.write("Registering handlers");
 
@@ -28,6 +38,11 @@ $(document).ready(function() {
 			 */
 			socket.on("game-sync", function(payload) {
 				syncGame(payload);
+			});
+
+			socket.on("game-pause", function(msg) {
+				gameCtx.game.pause();
+				$alert.text(msg);
 			});
 
 			/* 
