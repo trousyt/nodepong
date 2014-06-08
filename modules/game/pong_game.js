@@ -175,7 +175,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./pon
 			}
 
 			// Remove the player's paddle and pause the game.
-			this.paddles.slice(playerIdx, 1);	// TODO: This isn't causing isFull to return false
+			this.paddles[playerIdx] = null;
 			this.pause();
 		}
 
@@ -269,8 +269,7 @@ define(["./pong_physics", "./pong_board", "./pong_ball", "./pong_paddle", "./pon
 		 * @return {Boolean} True if the game is full; otherwise false.
 		 */
 		PongGame.prototype.isFull = function() {
-			return this.paddles.length === 2 && 
-				this.paddles[0] && this.paddles[1];
+			return this.paddles[0] && this.paddles[1];
 		};
 
 		/**

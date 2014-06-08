@@ -42,8 +42,8 @@ exports.register = function(socketio, callback) {
 		socket.emit("alert", msg);
 	};
 
-	pongManager.on("queued", function(skt) {
-		debug.socketwrite(skt, "Queued");
+	pongManager.on("queued", function(socket) {
+		debug.socketwrite(socket, "Queued");
 	});
 
 	pongManager.on("joined", function(e) {
@@ -73,7 +73,9 @@ exports.register = function(socketio, callback) {
 			// Receive paddle updates from client.
 			socket.on("paddle-updatey", function(y){
 				debug.socketwrite(socket, "Player " + playerIdx + " set paddle-y: " + y);
-				game.paddles[playerIdx].y = y;
+				if (game.paddles[playerIdx]) {
+					game.paddles[playerIdx].y = y;
+				}
 
 				// Immediately send this paddle y-pos to the opponent.
 				var opponentPlayerIdx = 1 - playerIdx;
@@ -94,7 +96,14 @@ exports.register = function(socketio, callback) {
 			});
 
 			// Handle game started event.
-			game.once("started", game.gameId, function() {
+			game.once("started", function() {
+				debug.write("Game " + game.gameId + " started");
+
+				// Send each socket match-init.
+				game.__sockets.forEach(function(skt) {
+					skt.emit("match-init", game.getSyncPayload());
+				});
+
 				// Game loop
 				setInterval(function(){
 					game.update();
@@ -108,7 +117,7 @@ exports.register = function(socketio, callback) {
 			});
 
 			// Handle game paused event.
-			game.once("paused", game.gameId, function() {
+			game.once("paused", function() {
 				socket.emit("game-pause", resx.pauseDisconnected);
 			});
 

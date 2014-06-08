@@ -20,9 +20,7 @@ $(document).ready(function() {
 		};
 
 		window.addEventListener("focus", function() {
-			debug.write("Gained focus");
-			// When the window/tab regains focus, 
-			// request a game-sync.
+			// When the window/tab regains focus, request a game-sync.
 			if (gameCtx.game) {
 				debug.write("Requesting game-sync");
 				socket.emit("game-sync");
@@ -37,7 +35,7 @@ $(document).ready(function() {
 			 * Syncs the server game payload with the client.
 			 */
 			socket.on("game-sync", function(payload) {
-				syncGame(payload);
+				//syncGame(payload);
 			});
 
 			socket.on("game-pause", function(msg) {
@@ -52,7 +50,7 @@ $(document).ready(function() {
 			socket.on("ball-sync", function(ball) {
 				debug.write("Ball-sync called");
 				debug.write(ball);
-				gameCtx.game.balls[0].sync(ball);
+				//gameCtx.game.balls[0].sync(ball);
 			});
 
 			/* 

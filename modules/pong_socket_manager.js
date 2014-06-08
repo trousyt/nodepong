@@ -256,7 +256,7 @@ define(["./game/pong_game", "./game/pong_settings", "./common/ext_pubsub", "./co
 						removeFromGame(socket);
 						break;
 					case SOCKET_STATE.WAITING:
-					removeFromWaitingQueue(socket);
+						removeFromWaitingQueue(socket);
 						break;
 				}
 

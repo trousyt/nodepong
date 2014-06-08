@@ -39,7 +39,7 @@ define(["./debug"], function(debug) {
 		 * @param {String} alias The alias of the handler to subscribe.
 		 * @param {Function} fn The function to be called when the event is fired.
 		 */
-		extend.once = function(event, alias, fn) {
+		extend.once = function(event, fn) {
 			// If no event name or function supplied, simply return.
 			if (!event) return;
 			if (!fn) return;
@@ -47,19 +47,23 @@ define(["./debug"], function(debug) {
 			// If an alias was provided, we check to see if it has
 			// already been defined on a registered handler.
 			// If it has, we simply exit out without re-adding.
-			if (alias) {
+			if (true) { // if (alias)
 				var handlers = eventRegistry[event];
 				if (handlers && handlers.length > 0) {
-					for (var i=0; i < handlers.length; i++) {
-						var blias = handlers[i].alias;
-						if (blias && blias === alias) {
-							return;
-						}
-					}
+					return;
 				}
+
+				// if (handlers && handlers.length > 0) {
+				// 	for (var i=0; i < handlers.length; i++) {
+				// 		var blias = handlers[i].alias;
+				// 		if (blias && blias === alias) {
+				// 			return;
+				// 		}
+				// 	}
+				// }
 			}
 
-			addHandler(event, fn, alias);
+			addHandler(event, fn);
 		}
 
 		/**
