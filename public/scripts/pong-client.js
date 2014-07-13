@@ -113,7 +113,7 @@
 			 */
 			 socket.on("match-init", function(init) {
 			 	debug.write("Received match init");
-			 	syncGame(init);
+			 	gameCtx.game.sync(init);
 			 });
 
 			/*
@@ -131,7 +131,7 @@
 				gameCtx.playerIdx = init.playerIdx;
 				gameCtx.oppPlayerIdx = 1 - init.playerIdx;
 				gameCtx.game = gameModule.create();
-				syncGame(init.game);
+				gameCtx.game.sync(init.game);
 
 				// Invoke after-init code.
 				afterInit();

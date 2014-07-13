@@ -95,6 +95,10 @@ exports.register = function(socketio, callback) {
 				socket.emit("ball-sync", ball);
 			});
 
+			game.on("score", function(){
+				socket.emit("score-sync", game.scores);
+			});
+
 			// Handle game started event.
 			game.once("started", function() {
 				debug.write("Game " + game.gameId + " started");
@@ -112,7 +116,7 @@ exports.register = function(socketio, callback) {
 				// Sync loop
 				setInterval(function() {
 					if (!game.isRunning()) return;
-					socket.emit("game-sync", game.getSyncPayload());
+					socket.emit("ball-sync", game.balls);
 				}, settings.gameSyncInterval);
 			});
 
