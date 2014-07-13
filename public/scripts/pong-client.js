@@ -33,10 +33,15 @@
 				 * Syncs the server ball with the client.
 				 */
 				socket.on("ball-sync", function(balls) {
-					debug.write("Ball-sync called");
-					
+					//debug.write("Ball-sync called");
+					//console.log(balls);
+
 					balls.forEach(function(ball, idx) {
-						gameCtx.game.balls[idx].sync(ball);
+						if (gameCtx.game.balls[idx] === 'undefined') {
+							gameCtx.game.balls[idx] = ball;
+						} else {
+							gameCtx.game.balls[idx].sync(ball);
+						}
 					});
 
 					gameCtx.game.render(canvasCtx);
@@ -47,7 +52,7 @@
 				 * Synchronizes the server scores with the client.
 				 */
 				 socket.on("score-sync", function(scores) {
-				 	debug.write("Received score sync");
+				 	//debug.write("Received score sync");
 				 	
 				 	scores.forEach(function(score, idx) {
 				 		gameCtx.game.scores[idx] = score;

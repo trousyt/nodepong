@@ -90,10 +90,10 @@ exports.register = function(socketio, callback) {
 				socket.emit("game-sync", game.getSyncPayload());
 			});
 
-			// Handle physics bounce events.
-			game.on("paddleBounce", function(ball){
-				socket.emit("ball-sync", ball);
-			});
+			// // Handle physics bounce events.
+			// game.on("paddleBounce", function(ball){
+			// 	socket.emit("ball-sync", ball);
+			// });
 
 			game.on("score", function(){
 				socket.emit("score-sync", game.scores);
@@ -112,13 +112,13 @@ exports.register = function(socketio, callback) {
 				setInterval(function(){
 					game.update();
 				}, settings.gameLoopInterval);
-
-				// Sync loop
-				setInterval(function() {
-					if (!game.isRunning()) return;
-					socket.emit("ball-sync", game.balls);
-				}, settings.gameSyncInterval);
 			});
+
+			// Ball sync loop
+			setInterval(function() {
+				if (!game.isRunning()) return;
+				socket.emit("ball-sync", game.balls);
+			}, settings.gameSyncInterval);
 
 			// Handle game paused event.
 			game.once("paused", function() {
