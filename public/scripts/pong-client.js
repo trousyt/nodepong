@@ -10,7 +10,7 @@
 			// Reference DOM elements.
 			var $alert = $("#alert");
 			var canvas = document.getElementById("game-canvas");
-			var canvasContext = canvas.getContext("2d");
+			var canvasCtx = canvas.getContext("2d");
 			var $canvas = $(canvas);
 			var gameCtx = {};
 
@@ -39,7 +39,7 @@
 						gameCtx.game.balls[idx].sync(ball);
 					});
 
-					gameCtx.game.render();
+					gameCtx.game.render(canvasCtx);
 				});
 
 				/*
@@ -53,7 +53,7 @@
 				 		gameCtx.game.scores[idx] = score;
 				 	});
 
-				 	gameCtx.game.render();
+				 	gameCtx.game.render(canvasCtx);
 				 });
 
 				/* 
@@ -64,7 +64,7 @@
 					//debug.write("opponent's paddle-y changed: " + y);
 					var oppPaddle = gameCtx.game.paddles[gameCtx.oppPlayerIdx];					
 					if (oppPaddle) oppPaddle.y = y;
-					gameCtx.game.render();
+					gameCtx.game.render(canvasCtx);
 				});
 			};
 
@@ -113,7 +113,7 @@
 			 */
 			 socket.on("match-init", function(init) {
 			 	debug.write("Received match init");
-			 	syncGame(init);
+			 	gameCtx.game.sync(init);
 			 });
 
 			/*
@@ -131,7 +131,7 @@
 				gameCtx.playerIdx = init.playerIdx;
 				gameCtx.oppPlayerIdx = 1 - init.playerIdx;
 				gameCtx.game = gameModule.create();
-				syncGame(init.game);
+				gameCtx.game.sync(init.game);
 
 				// Invoke after-init code.
 				afterInit();
