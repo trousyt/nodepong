@@ -17,7 +17,7 @@
 			//---------------------------------
 
 			function registerHandlers() {
-				debug.write("Registering handlers");
+				//debug.write("Registering handlers");
 
 				/* 
 				 * SocketIO Event: `game-pause`
@@ -94,7 +94,7 @@
 							relativeY;
 
 					// Update the server.
-					debug.write("Sending paddle Y-pos");
+					//debug.write("Sending paddle Y-pos");
 					socket.emit("paddle-updatey", constrY);
 
 					// Update the paddle pos on the game instance.
@@ -107,7 +107,7 @@
 			 * Receive alerts to be displayed.
 			 */
 			socket.on("alert", function(alert) {
-				debug.write("Received alert");
+				//debug.write("Received alert");
 				$alert.show(1000);
 				$alert.text(alert);
 			});
@@ -117,7 +117,7 @@
 			 * Initializes a new match.
 			 */
 			 socket.on("match-init", function(init) {
-			 	debug.write("Received match init");
+			 	//debug.write("Received match init");
 			 	gameCtx.game.sync(init);
 			 });
 
@@ -126,7 +126,7 @@
 			 * Initializes the client with settings and game object.
 			 */
 			socket.on("game-init", function(init) {
-				debug.write("Received init for player " + init.playerIdx);
+				//debug.write("Received init for player " + init.playerIdx);
 
 				// Update game board CSS settings.
 				canvas.width = init.game.board.width;
